@@ -194,20 +194,58 @@ public final class NaturalMergesortJava {
     
     private static <T> void merge(final T[] source,
                                   final T[] target,
+                                  final int sourceOffset,
                                   int targetOffset,
-                                  int sourceOffset,
-                                  final int leftRunLength,
-                                  final int middleRunLength,
-                                  final int rightRunLength,
+                                  final int runLengthLeft,
+                                  final int runLengthRight,
+                                  final Comparator<? super T> cmp) {
+        
+        int indexLeft  = sourceOffset;
+        int indexRight = sourceOffset + runLengthLeft;
+        
+        final int indexBoundLeft  = indexRight;
+        final int indexBoundRight = indexRight + runLengthRight;
+        
+        while (indexLeft != indexBoundLeft && indexRight != indexBoundRight) {
+            
+            final T elementLeft  = source[indexLeft];
+            final T elementRight = source[indexRight];
+            
+            target[targetOffset++] = cmp.compare(elementRight, 
+                                                 elementLeft) < 0 ?
+                    source[indexRight++] :
+                    source[indexLeft++];
+        }
+        
+        System.arraycopy(source, 
+                         indexLeft, 
+                         target, 
+                         targetOffset, 
+                         indexBoundLeft - indexLeft);
+        
+        System.arraycopy(source, 
+                         indexRight, 
+                         target, 
+                         targetOffset, 
+                         indexBoundRight - indexRight);
+    }
+    
+    private static <T> void merge(final T[] source,
+                                  final T[] target,
+                                  final int sourceOffset,
+                                  int targetOffset,
+                                  final int runLengthLeft,
+                                  final int runLengthMiddle,
+                                  final int runLengthRight,
                                   final Comparator<? super T> cmp) {
         
         int indexLeft   = sourceOffset;
-        int indexMiddle = sourceOffset + leftRunLength;
-        int indexRight  = indexMiddle + middleRunLength;
+        int indexMiddle = sourceOffset + runLengthLeft;
+        int indexRight  = indexMiddle + runLengthMiddle;
         
         final int indexBoundLeft   = indexMiddle;
         final int indexBoundMiddle = indexRight;
-        final int IndexBoundRight  = indexRight + rightRunLength;
+        final int IndexBoundRight  = indexRight + runLengthRight;
         
         while (indexLeft   != indexBoundLeft   &&
                indexMiddle != indexBoundMiddle &&
