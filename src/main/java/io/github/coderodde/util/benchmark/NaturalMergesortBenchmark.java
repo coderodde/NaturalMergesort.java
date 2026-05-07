@@ -2,6 +2,7 @@ package io.github.coderodde.util.benchmark;
 
 import io.github.coderodde.statistics.run.Runner;
 import io.github.coderodde.util.NaturalMergesort;
+import static io.github.coderodde.util.Utils.arraysEqual;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.Random;
 
 final class NaturalMergesortBenchmark {
     
-    private static final int NUMBER_OF_ARRAYS = 20;
+    private static final int NUMBER_OF_ARRAYS = 5;
     
     public static void main(String[] args) {
         
@@ -20,10 +21,10 @@ final class NaturalMergesortBenchmark {
         final List<Integer[]> dataA3 = createPresortedArrays(random);
         final List<Integer[]> dataA4 = createBadTailArrays(random);
         
-        final List<Integer[]> dataB1 = createSortedArrays();
-        final List<Integer[]> dataB2 = createRandomArrays(random);
-        final List<Integer[]> dataB3 = createPresortedArrays(random);
-        final List<Integer[]> dataB4 = createBadTailArrays(random);
+        final List<Integer[]> dataB1 = copy(dataA1);
+        final List<Integer[]> dataB2 = copy(dataA2);
+        final List<Integer[]> dataB3 = copy(dataA3);
+        final List<Integer[]> dataB4 = copy(dataA4);
         
         final NaturalMergesortBenchmarkRunnable runnableA1 = 
           new NaturalMergesortBenchmarkRunnable(dataA1);
@@ -67,6 +68,17 @@ final class NaturalMergesortBenchmark {
         System.out.println("--- Bad tail data ---");
         System.out.println(Runner.measure(runnableA4, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB4, NUMBER_OF_ARRAYS));
+        System.out.println();
+        
+        final boolean equal1 = arrayListsEqual(dataA1, dataB1);
+        final boolean equal2 = arrayListsEqual(dataA2, dataB2);
+        final boolean equal3 = arrayListsEqual(dataA3, dataB3);
+        final boolean equal4 = arrayListsEqual(dataA4, dataB4);
+        
+        System.out.printf("Algorithms agree: %b.\n", equal1 &&
+                                                     equal2 &&
+                                                     equal3 &&
+                                                     equal4);
     }
     
     private static List<Integer[]> createSortedArrays() {
@@ -198,5 +210,20 @@ final class NaturalMergesortBenchmark {
             
             Arrays.sort(data.get(runned++), Integer::compare);
         }
+    }
+        
+    private static boolean arrayListsEqual(final List<Integer[]> l1,
+                                           final List<Integer[]> l2) {
+        if (l1.size() != l2.size()) {
+            return false;
+        }
+        
+        for (int i = 0; i < l1.size(); ++i) {
+            if (!arraysEqual(l1.get(i), l2.get(i))) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 }
