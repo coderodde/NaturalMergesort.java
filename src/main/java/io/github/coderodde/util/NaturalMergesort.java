@@ -481,20 +481,27 @@ public final class NaturalMergesort {
     private static void checkIndices(final int fromIndex,
                                      final int toIndex,
                                      final int length) {
+        
+        String exceptionMessage = null;
+        
         if (fromIndex < 0) {
-            throw new IndexOutOfBoundsException(
-                String.format("fromIndex(%d) < 0", fromIndex));
+            exceptionMessage = String.format("fromIndex(%d) < 0", fromIndex);
         }
         
         if (toIndex > length) {
-            throw new IndexOutOfBoundsException(
-                String.format("toIndex(%d) > length(%d)", toIndex, length));
+            exceptionMessage = String.format("toIndex(%d) > length(%d)",
+                                             toIndex, 
+                                             length);
         }
         
         if (fromIndex > toIndex) {
-            throw new IndexOutOfBoundsException(
-                String.format(
-                    "fromIndex(%d) > toIndex(%d)", fromIndex, toIndex));
+            exceptionMessage = String.format("fromIndex(%d) > toIndex(%d)", 
+                                             fromIndex,
+                                             toIndex);
+        }
+        
+        if (exceptionMessage != null) {
+            throw new IndexOutOfBoundsException(exceptionMessage);
         }
     }
 }

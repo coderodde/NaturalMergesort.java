@@ -5,6 +5,7 @@
     <artifactId>NaturalMergesort.java</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
+    
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -12,13 +13,51 @@
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
+        
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
             <version>1.3</version>
             <scope>test</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>io.github.coderodde.statistics.run</groupId>
+            <artifactId>RunStatistics.java</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
+    
+    <build>
+        <plugins>
+            
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.14</version>
+
+                <executions>
+                    <!-- Attach JaCoCo agent -->
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+
+                    <!-- Generate report after tests -->
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>24</maven.compiler.release>

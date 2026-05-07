@@ -93,6 +93,21 @@ public class NaturalMergesortTest {
         }
     }
     
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void throwsOnNegativeFromIndex() {
+        NaturalMergesort.sort(new Integer[] { 1, 2 }, -1, 1, Integer::compare);
+    }
+    
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void throwsOnTooLargeToIndex() {
+        NaturalMergesort.sort(new Integer[] { 1, 2 }, 0, 3, Integer::compare);
+    }
+    
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void throwsOnFromIndexLargerThanToIndex() {
+        NaturalMergesort.sort(new Integer[] { 1, 2 }, 1, 0, Integer::compare);
+    }
+    
     private static Integer[] createRandomArray(final Random random) {
         final int arrayLength = getRandom(1, 1000, random);
         final Integer[] array = new Integer[arrayLength];
