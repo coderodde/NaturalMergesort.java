@@ -1,5 +1,6 @@
 package io.github.coderodde.util.benchmark;
 
+import io.github.coderodde.statistics.run.Runner;
 import io.github.coderodde.util.NaturalMergesort;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +48,25 @@ final class NaturalMergesortBenchmark {
         
         final NaturalMergesortBenchmarkRunnable runnableB4 = 
           new NaturalMergesortBenchmarkRunnable(dataB4);
+        
+        System.out.println("--- Sorted data ---");
+        System.out.println(Runner.measure(runnableA1, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableB1, NUMBER_OF_ARRAYS));
+        System.out.println();
+        
+        System.out.println("--- Random data ---");
+        System.out.println(Runner.measure(runnableA2, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableB2, NUMBER_OF_ARRAYS));
+        System.out.println();
+        
+        System.out.println("--- Presorted data ---");
+        System.out.println(Runner.measure(runnableA3, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableB3, NUMBER_OF_ARRAYS));
+        System.out.println();
+        
+        System.out.println("--- Bad tail data ---");
+        System.out.println(Runner.measure(runnableA4, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableB4, NUMBER_OF_ARRAYS));
     }
     
     private static List<Integer[]> createSortedArrays() {
@@ -158,10 +178,6 @@ final class NaturalMergesortBenchmark {
             
             NaturalMergesort.sort(data.get(runned++), Integer::compare);
         }
-        
-        int getNumberOfDataArrays() {
-            return data.size();
-        }
     }
     
     private static final class ArraysSortBenchmarkRunnable 
@@ -181,10 +197,6 @@ final class NaturalMergesortBenchmark {
             }
             
             Arrays.sort(data.get(runned++), Integer::compare);
-        }
-        
-        int getNumberOfDataArrays() {
-            return data.size();
         }
     }
 }
