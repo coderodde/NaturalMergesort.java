@@ -3,6 +3,7 @@ package io.github.coderodde.util.benchmark;
 import io.github.coderodde.statistics.run.Runner;
 import io.github.coderodde.util.NaturalMergesort;
 import static io.github.coderodde.util.Utils.arraysEqual;
+import static io.github.coderodde.util.Utils.isSorted;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.Random;
 
 final class NaturalMergesortBenchmark {
     
-    private static final int NUMBER_OF_ARRAYS = 5;
+    private static final int NUMBER_OF_ARRAYS = 10;
     
     public static void main(String[] args) {
         
@@ -50,6 +51,15 @@ final class NaturalMergesortBenchmark {
         final NaturalMergesortBenchmarkRunnable runnableB4 = 
           new NaturalMergesortBenchmarkRunnable(dataB4);
         
+        System.out.println(
+        """
+        ********************************************************************
+        * After each title --- Title ---, the first row is for the         *
+        * NaturalMergesort.sort and the second row is for the Arrays.sort. *
+        ********************************************************************
+        """
+        );
+        
         System.out.println("--- Sorted data ---");
         System.out.println(Runner.measure(runnableA1, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB1, NUMBER_OF_ARRAYS));
@@ -79,6 +89,16 @@ final class NaturalMergesortBenchmark {
                                                      equal2 &&
                                                      equal3 &&
                                                      equal4);
+        
+        System.out.printf("All arrays are sorted: %b.\n",
+                          allSorted(dataA1) &&
+                          allSorted(dataA2) &&
+                          allSorted(dataA3) &&
+                          allSorted(dataA4) &&
+                          allSorted(dataB1) &&
+                          allSorted(dataB2) &&
+                          allSorted(dataB3) &&
+                          allSorted(dataB4));
     }
     
     private static List<Integer[]> createSortedArrays() {
@@ -220,6 +240,16 @@ final class NaturalMergesortBenchmark {
         
         for (int i = 0; i < l1.size(); ++i) {
             if (!arraysEqual(l1.get(i), l2.get(i))) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    private static boolean allSorted(final List<Integer[]> arrayList) {
+        for (final Integer[] array : arrayList) {
+            if (!isSorted(array, Integer::compare)) {
                 return false;
             }
         }
