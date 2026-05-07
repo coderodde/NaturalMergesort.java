@@ -34,10 +34,10 @@ public final class Utils {
         return isSorted(array, 0, array.length, cmp);
     }
     
-    public static <T> boolean equals(final T[] array1,
-                                     final T[] array2,
-                                     final int fromIndex,
-                                     final int toIndex) {
+    public static <T> boolean arraysEqual(final T[] array1,
+                                          final T[] array2,
+                                          final int fromIndex,
+                                          final int toIndex) {
         if (array1.length != array2.length) {
             return false;
         }
@@ -51,8 +51,8 @@ public final class Utils {
         return true;
     }
     
-    public static <T> boolean equals(final T[] array1,
-                                     final T[] array2) {
-        return equals(array1, array2, 0, array1.length);
+    public static <T> boolean arraysEqual(final T[] array1,
+                                          final T[] array2) {
+        return arraysEqual(array1, array2, 0, array1.length);
     }
 }
