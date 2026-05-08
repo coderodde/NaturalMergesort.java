@@ -42,14 +42,14 @@ final class NaturalMergesortBenchmark {
         final ArraysSortBenchmarkRunnable runnableB1 = 
           new ArraysSortBenchmarkRunnable(dataB1);
         
-        final NaturalMergesortBenchmarkRunnable runnableB2 = 
-          new NaturalMergesortBenchmarkRunnable(dataB2);
+        final ArraysSortBenchmarkRunnable runnableB2 = 
+          new ArraysSortBenchmarkRunnable(dataB2);
         
-        final NaturalMergesortBenchmarkRunnable runnableB3 = 
-          new NaturalMergesortBenchmarkRunnable(dataB3);
+        final ArraysSortBenchmarkRunnable runnableB3 = 
+          new ArraysSortBenchmarkRunnable(dataB3);
         
-        final NaturalMergesortBenchmarkRunnable runnableB4 = 
-          new NaturalMergesortBenchmarkRunnable(dataB4);
+        final ArraysSortBenchmarkRunnable runnableB4 = 
+          new ArraysSortBenchmarkRunnable(dataB4);
         
         System.out.println(
         """
