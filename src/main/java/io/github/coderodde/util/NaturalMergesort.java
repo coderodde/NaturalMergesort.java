@@ -9,6 +9,8 @@ import java.util.Objects;
  */
 public final class NaturalMergesort {
     
+    private static final int PRESORTED_RUN_LENGTH = 32;
+    
     /**
      * Sorts entirely the input array.
      * 
@@ -55,12 +57,13 @@ public final class NaturalMergesort {
             return;
         }
         
-        final RunLengthQueue<T> queue = new RunLengthQueue<>(array,
-                                                             fromIndex, 
-                                                             toIndex,
-                                                             cmp);
+        RunLengthQueue<T> queue = new RunLengthQueue<>(array,
+                                                       fromIndex, 
+                                                       toIndex,
+                                                       cmp);
         // Let the run length queue build itself:
         queue.build();
+        queue = queue.presort();
         
         if (queue.size() < 2) {
             // No runs to merge, return.
@@ -188,8 +191,6 @@ public final class NaturalMergesort {
      */
     private static final class RunLengthQueue<T> {
         
-        private static final int MINIMUM_CAPACITY = 128;
-        
         private final T[]                       array;
         private final int                       fromIndex;
         private final int                       toIndex;
@@ -215,6 +216,20 @@ public final class NaturalMergesort {
             this.mask                   = fixedCapacity - 1;
             this.storage                = new int[fixedCapacity];
             this.cmp                    = cmp;
+        }
+        
+        RunLengthQueue(final T[] array,
+                       final int fromIndex,
+                       final int toIndex,
+                       final int capacity,
+                       final Comparator<? super T> cmp) {
+            
+            this.array     = array;
+            this.fromIndex = fromIndex;
+            this.toIndex   = toIndex;
+            this.storage   = new int[capacity];
+            this.mask      = capacity - 1;
+            this.cmp       = cmp;
         }
         
         /**
@@ -249,6 +264,77 @@ public final class NaturalMergesort {
             return size;
         }
         
+        RunLengthQueue<T> presort() {
+            final RunLengthQueue<T> presortedQueue = 
+              new RunLengthQueue<>(array,
+                                   fromIndex,
+                                   toIndex, 
+                                   storage.length,
+                                   cmp);
+            
+            int offset = fromIndex;
+            
+            mainLoop:
+            while (size() != 0) {
+                // Start pumping a run:
+                final int runLengthLeft = dequeue();
+                
+                if (runLengthLeft >= PRESORTED_RUN_LENGTH || size() == 0) {
+                    // The currently read run is too large to be presorted:
+                    offset += runLengthLeft;
+                    presortedQueue.enqueue(runLengthLeft);
+                    continue;
+                }
+                
+                int runLengthTentative = runLengthLeft;
+                
+                while (true) {
+                    // Keep adding sorted short runs:
+                    final int runLengthNext = dequeue();
+                    runLengthTentative += runLengthNext;
+                    
+                    if (runLengthTentative > PRESORTED_RUN_LENGTH) {
+                        presortedQueue.enqueue(runLengthTentative - 
+                                               runLengthNext);
+                        
+                        presortedQueue.enqueue(runLengthNext);
+                        break;
+                    }
+                    
+                    insertionSort(array,
+                                  offset, 
+                                  offset + runLengthTentative,
+                                  cmp);
+                    
+                    if (size() == 0) {
+                        presortedQueue.enqueue(runLengthTentative);
+                        break mainLoop;
+                    }
+                }
+                
+                offset += runLengthTentative;
+            }
+            
+            return presortedQueue;
+        }
+        
+        private static <T> void insertionSort(final T[] array,
+                                              final int fromIndex,
+                                              final int toIndex,
+                                              final Comparator<? super T> cmp) {
+            for (int i = fromIndex + 1; i < toIndex; ++i) {
+                final T key = array[i];
+                int j = i - 1;
+                
+                while (j >= fromIndex && cmp.compare(array[j], key) > 0) {
+                    array[j + 1] = array[j];
+                    --j;
+                }
+                
+                array[j + 1] = key;
+            }
+        }
+        
         /**
          * Returns the smallest power of two no smaller than {@code capacity}.
          * 
@@ -257,7 +343,6 @@ public final class NaturalMergesort {
          * @return a fixed capacity.
          */
         private static int fixCapacity(int capacity) {
-            capacity = Math.max(capacity, MINIMUM_CAPACITY);
             int r = 1;
             
             while (r < capacity) {

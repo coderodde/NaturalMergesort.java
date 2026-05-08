@@ -73,6 +73,14 @@ public class NaturalMergesortTest {
     }
     
     @Test
+    public void debug1() {
+        final Random random = new Random(666L);
+        Integer[] arr = createRandomArray(random, 40);
+        NaturalMergesort.sort(arr, 1, arr.length - 1, Integer::compare);
+        assertTrue(isSorted(arr, 1, arr.length - 1, Integer::compare));
+    }
+    
+    @Test
     public void stressTest() {
         final Random random = new Random(13L);
         
@@ -86,7 +94,6 @@ public class NaturalMergesortTest {
             
             NaturalMergesort.sort(array1, fromIndex, toIndex, Integer::compare);
             Arrays.sort(array2, fromIndex, toIndex, Integer::compare);
-            
             assertTrue(isSorted(array1, fromIndex, toIndex, Integer::compare));
             assertTrue(isSorted(array2, fromIndex, toIndex, Integer::compare));
             assertTrue(arraysEqual(array1, array2));
@@ -110,6 +117,17 @@ public class NaturalMergesortTest {
     
     private static Integer[] createRandomArray(final Random random) {
         final int arrayLength = getRandom(1, 1000, random);
+        final Integer[] array = new Integer[arrayLength];
+        
+        for (int i = 0; i < array.length; ++i) {
+            array[i] = random.nextInt(600);
+        }
+        
+        return array;
+    }
+    
+    private static Integer[] createRandomArray(final Random random, 
+                                               final int arrayLength) {
         final Integer[] array = new Integer[arrayLength];
         
         for (int i = 0; i < array.length; ++i) {
