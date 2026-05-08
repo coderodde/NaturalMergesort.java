@@ -39,8 +39,13 @@ public final class NaturalMergesort {
                                 final int fromIndex,
                                 final int toIndex,
                                 final Comparator<? super T> cmp) {
+        
         Objects.requireNonNull(array, "The input array is null.");
-        checkIndices(fromIndex, toIndex, array.length);
+        
+        checkIndices(fromIndex, 
+                     toIndex, 
+                     array.length);
+        
         Objects.requireNonNull(cmp, "The input comparator is null.");
         
         final int rangeLength = toIndex - fromIndex;
@@ -50,13 +55,12 @@ public final class NaturalMergesort {
             return;
         }
         
-        final RunLengthQueue<T> queue = new RunLengthQueue<>(array, 
+        final RunLengthQueue<T> queue = new RunLengthQueue<>(array,
                                                              fromIndex, 
                                                              toIndex,
                                                              cmp);
-        queue.build(array,
-                    fromIndex, 
-                    toIndex);
+        // Let the run length queue build itself:
+        queue.build();
         
         if (queue.size() < 2) {
             // No runs to merge, return.
@@ -105,6 +109,7 @@ public final class NaturalMergesort {
                 final int runLengthMiddle = queue.dequeue();
                 final int runLengthRight  = queue.dequeue();
                 
+                // Call 3-way merge procedure:
                 merge(source, 
                       target,
                       sourceOffset + offset, 
@@ -212,12 +217,22 @@ public final class NaturalMergesort {
             this.cmp                    = cmp;
         }
         
+        /**
+         * Enqueues the run length to the tail of this run length queue.
+         * 
+         * @param runLength the run length to enqueue.
+         */
         void enqueue(final int runLength) {
             storage[tailIndex & mask] = runLength;
             tailIndex = (tailIndex + 1) & mask;
             ++size;
         }
         
+        /**
+         * Dequeues the head run length.
+         * 
+         * @return the head run length.
+         */
         int dequeue() {
             final int runLength = storage[headIndex];
             headIndex = (headIndex + 1) & mask;
@@ -225,10 +240,22 @@ public final class NaturalMergesort {
             return runLength;
         }
         
+        /**
+         * Returns the number of runs in this run length queue.
+         * 
+         * @return the number of runs in this run length queue.
+         */
         int size() {
             return size;
         }
         
+        /**
+         * Returns the smallest power of two no smaller than {@code capacity}.
+         * 
+         * @param capacity the capacity to fix.
+         * 
+         * @return a fixed capacity.
+         */
         private static int fixCapacity(int capacity) {
             capacity = Math.max(capacity, MINIMUM_CAPACITY);
             int r = 1;
@@ -240,10 +267,14 @@ public final class NaturalMergesort {
             return r;
         }
         
-        private void build(final T[] array,
-                           final int fromIndex,
-                           final int toIndex) {
-            
+        /**
+         * Builds the run length queue.
+         * 
+         * @param array     the array holding the range to sort.
+         * @param fromIndex the starting index of the range.
+         * @param toIndex   one past the ending index of the range.
+         */
+        private void build() {
             int indexLeft                 = fromIndex;
             int indexRight                = indexLeft + 1;
             final int upperBoundLeftIndex = toIndex - 1;
@@ -270,23 +301,39 @@ public final class NaturalMergesort {
                         ++indexRight;
                     }
                     
+                    // Make a strictly descending run strictly ascending:
                     reverseRun(array, 
                                indexHead, 
                                indexRight);
                 }
                 
+                // Store the length of the currently scanned run:
                 enqueue(indexRight - indexHead);
                 
+                // Move the indices to the next pair:
                 ++indexLeft;
                 ++indexRight;
             }
             
             if (indexLeft == upperBoundLeftIndex) {
+                // Once here, we have a leftover run of length 1:
                 enqueue(1);
             }
         }
     }
     
+    /**
+     * Merges two consecutive runs into one run.
+     * 
+     * @param <T>            the type of the array components.
+     * @param source         the source array.
+     * @param target         the target array.
+     * @param sourceOffset   the offset to the source array.
+     * @param targetOffset   the offset to the target array.
+     * @param runLengthLeft  the length of the left run.
+     * @param runLengthRight the length of the right run.
+     * @param cmp            the comparator.
+     */
     private static <T> void merge(final T[] source,
                                   final T[] target,
                                   final int sourceOffset,
@@ -325,6 +372,19 @@ public final class NaturalMergesort {
                          indexBoundRight - indexRight);
     }
     
+    /**
+     * Performs a 3-way merge.
+     * 
+     * @param <T>              the type of the array components.
+     * @param source           the source array.
+     * @param target           the target array.
+     * @param sourceOffset     the offset to the source array.
+     * @param targetOffset     the offset to the target array.
+     * @param runLengthLeft    the length of the left run.
+     * @param runLengthMiddle  the length of the middle run.
+     * @param runLengthRight   the length of the right run.
+     * @param cmp              the comparator.
+     */
     private static <T> void merge(final T[] source,
                                   final T[] target,
                                   final int sourceOffset,
