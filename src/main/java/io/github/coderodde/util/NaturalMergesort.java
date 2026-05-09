@@ -25,7 +25,7 @@ public final class NaturalMergesort {
              array.length,
              cmp);
     }
-    
+     
     /**
      * Sorts the range {@code array[fromIndex ... (toIndex - 1)]}.
      * 

@@ -135,7 +135,7 @@ final class NaturalMergesortBenchmark {
         List<Integer[]> arrays = new ArrayList<>(NUMBER_OF_ARRAYS);
         
         for (int i = 0; i < NUMBER_OF_ARRAYS; ++i) {
-            arrays.add(createBadTailArray(random));
+            arrays.add(createBadTailArray());
         }
         
         return arrays;
@@ -181,11 +181,19 @@ final class NaturalMergesortBenchmark {
         return array;
     }
     
-    private static Integer[] createBadTailArray(final Random random) {
-        final Integer[] array = createRandomArray(random);
+    private static Integer[] createBadTailArray() {
+        final Integer[] array = new Integer[1024 * 1024 + 1000];
         
-        for (int i = 1_000_000 - 1_000; i < 1_000_000; ++i) {
-            array[i] = i - 1_000_010;
+        int index = 0;
+        
+        for (int runIndex = 0; runIndex < 1024; ++runIndex) {
+            for (int i = 0; i < 1024; ++i) {
+                array[index++] = i;
+            }
+        }
+        
+        for (int i = 1024 * 1024; i < array.length; ++i) {
+            array[index++] = i - 2_000_000;
         }
         
         return array;
