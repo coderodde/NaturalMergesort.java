@@ -27,6 +27,11 @@ final class NaturalMergesortBenchmark {
         final List<Integer[]> dataB3 = copy(dataA3);
         final List<Integer[]> dataB4 = copy(dataA4);
         
+        final List<Integer[]> dataC1 = copy(dataA1);
+        final List<Integer[]> dataC2 = copy(dataA2);
+        final List<Integer[]> dataC3 = copy(dataA3);
+        final List<Integer[]> dataC4 = copy(dataA4);
+        
         final NaturalMergesortBenchmarkRunnable runnableA1 = 
           new NaturalMergesortBenchmarkRunnable(dataA1);
         
@@ -39,56 +44,81 @@ final class NaturalMergesortBenchmark {
         final NaturalMergesortBenchmarkRunnable runnableA4 = 
           new NaturalMergesortBenchmarkRunnable(dataA4);
         
-        final ArraysSortBenchmarkRunnable runnableB1 = 
-          new ArraysSortBenchmarkRunnable(dataB1);
+        final NaturalMergesortV2BenchmarkRunnable runnableB1 = 
+          new NaturalMergesortV2BenchmarkRunnable(dataB1);
         
-        final ArraysSortBenchmarkRunnable runnableB2 = 
-          new ArraysSortBenchmarkRunnable(dataB2);
+        final NaturalMergesortV2BenchmarkRunnable runnableB2 = 
+          new NaturalMergesortV2BenchmarkRunnable(dataB2);
         
-        final ArraysSortBenchmarkRunnable runnableB3 = 
-          new ArraysSortBenchmarkRunnable(dataB3);
+        final NaturalMergesortV2BenchmarkRunnable runnableB3 = 
+          new NaturalMergesortV2BenchmarkRunnable(dataB3);
         
-        final ArraysSortBenchmarkRunnable runnableB4 = 
-          new ArraysSortBenchmarkRunnable(dataB4);
+        final NaturalMergesortV2BenchmarkRunnable runnableB4 = 
+          new NaturalMergesortV2BenchmarkRunnable(dataB4);
+        
+        final ArraysSortBenchmarkRunnable runnableC1 = 
+          new ArraysSortBenchmarkRunnable(dataC1);
+        
+        final ArraysSortBenchmarkRunnable runnableC2 = 
+          new ArraysSortBenchmarkRunnable(dataC2);
+        
+        final ArraysSortBenchmarkRunnable runnableC3 = 
+          new ArraysSortBenchmarkRunnable(dataC3);
+        
+        final ArraysSortBenchmarkRunnable runnableC4 = 
+          new ArraysSortBenchmarkRunnable(dataC4);
         
         System.out.println(
         """
-        ********************************************************************
-        * After each title --- Title ---, the first row is for the         *
-        * NaturalMergesort.sort and the second row is for the Arrays.sort. *
-        ********************************************************************
+        *********************************************************************
+        * After each title --- Title ---, the first row is for the          *
+        * NaturalMergesort.sort, the second row is for the                  *
+        * NaturalMergesortV2.sort, and the last row is for the Arrays.sort. *
+        *********************************************************************
         """
         );
         
         System.out.println("--- Sorted data ---");
         System.out.println(Runner.measure(runnableA1, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB1, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableC1, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.out.println("--- Random data ---");
         System.out.println(Runner.measure(runnableA2, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB2, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableC2, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.out.println("--- Presorted data ---");
         System.out.println(Runner.measure(runnableA3, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB3, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableC3, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.out.println("--- Bad tail data ---");
         System.out.println(Runner.measure(runnableA4, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB4, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableC4, NUMBER_OF_ARRAYS));
         System.out.println();
         
         final boolean equal1 = arrayListsEqual(dataA1, dataB1);
         final boolean equal2 = arrayListsEqual(dataA2, dataB2);
         final boolean equal3 = arrayListsEqual(dataA3, dataB3);
         final boolean equal4 = arrayListsEqual(dataA4, dataB4);
+        final boolean equal5 = arrayListsEqual(dataA1, dataC1);
+        final boolean equal6 = arrayListsEqual(dataA2, dataC2);
+        final boolean equal7 = arrayListsEqual(dataA3, dataC3);
+        final boolean equal8 = arrayListsEqual(dataA4, dataC4);
         
         System.out.printf("Algorithms agree: %b.\n", equal1 &&
                                                      equal2 &&
                                                      equal3 &&
-                                                     equal4);
+                                                     equal4 &&
+                                                     equal5 &&
+                                                     equal6 &&
+                                                     equal7 &&
+                                                     equal8);
         
         System.out.printf("All arrays are sorted: %b.\n",
                           allSorted(dataA1) &&
@@ -98,7 +128,11 @@ final class NaturalMergesortBenchmark {
                           allSorted(dataB1) &&
                           allSorted(dataB2) &&
                           allSorted(dataB3) &&
-                          allSorted(dataB4));
+                          allSorted(dataB4) &&
+                          allSorted(dataC1) &&
+                          allSorted(dataC2) &&
+                          allSorted(dataC3) &&
+                          allSorted(dataC4));
     }
     
     private static List<Integer[]> createSortedArrays() {
@@ -207,6 +241,26 @@ final class NaturalMergesortBenchmark {
         private int runned = 0;
         
         NaturalMergesortBenchmarkRunnable(final List<Integer[]> data) {
+            this.data.addAll(data);
+        }
+        
+        @Override
+        public void run() {
+            if (runned == data.size()) {
+                throw new IllegalStateException("Should not get here.");
+            }
+            
+            NaturalMergesort.sort(data.get(runned++), Integer::compare);
+        }
+    }
+    
+    private static final class NaturalMergesortV2BenchmarkRunnable 
+            implements Runnable {
+
+        private final List<Integer[]> data = new ArrayList<>();
+        private int runned = 0;
+        
+        NaturalMergesortV2BenchmarkRunnable(final List<Integer[]> data) {
             this.data.addAll(data);
         }
         
