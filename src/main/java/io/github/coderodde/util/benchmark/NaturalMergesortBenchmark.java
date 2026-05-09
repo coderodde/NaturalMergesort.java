@@ -250,6 +250,7 @@ final class NaturalMergesortBenchmark {
                 throw new IllegalStateException("Should not get here.");
             }
             
+            NaturalMergesort.doPerformPresort(false);
             NaturalMergesort.sort(data.get(runned++), Integer::compare);
         }
     }
@@ -270,6 +271,7 @@ final class NaturalMergesortBenchmark {
                 throw new IllegalStateException("Should not get here.");
             }
             
+            NaturalMergesort.doPerformPresort(true);
             NaturalMergesort.sort(data.get(runned++), Integer::compare);
         }
     }

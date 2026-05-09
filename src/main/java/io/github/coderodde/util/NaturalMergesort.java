@@ -10,6 +10,21 @@ import java.util.Objects;
 public final class NaturalMergesort {
     
     /**
+     * If presorting is enabled, this constant specifies the minimum run length
+     * after presorting.
+     */
+    private static final int PRESORTED_RUN_LENGTH = 16;
+    
+    /**
+     * The boolean flag indicating whether to presort or not.
+     */
+    private static volatile boolean performPresort = false;
+    
+    public static void doPerformPresort(final boolean performPresort) {
+        NaturalMergesort.performPresort = performPresort;
+    }
+    
+    /**
      * Sorts entirely the input array.
      * 
      * @param <T>   the type of array components.
@@ -61,6 +76,10 @@ public final class NaturalMergesort {
                                                        cmp);
         // Let the run length queue build itself:
         queue.build();
+        
+        if (performPresort) {
+            queue = queue.presort();
+        }
         
         if (queue.size() < 2) {
             // No runs to merge, return.
@@ -331,8 +350,87 @@ public final class NaturalMergesort {
                 enqueue(1);
             }
         }
+        
+        RunLengthQueue<T> presort() {
+            final RunLengthQueue<T> presortedQueue = 
+              new RunLengthQueue<>(array,
+                                   fromIndex,
+                                   toIndex, 
+                                   storage.length,
+                                   cmp);
+            
+            int offset = fromIndex;
+            
+            mainLoop:
+            while (size() != 0) {
+                // Start pumping a run:
+                final int runLengthLeft = dequeue();
+                
+                if (runLengthLeft >= PRESORTED_RUN_LENGTH || size() == 0) {
+                    // The currently read run is too large to be presorted:
+                    offset += runLengthLeft;
+                    presortedQueue.enqueue(runLengthLeft);
+                    continue;
+                }
+                
+                int runLengthTentative = runLengthLeft;
+                
+                while (true) {
+                    // Keep adding sorted short runs:
+                    final int runLengthNext = dequeue();
+                    runLengthTentative += runLengthNext;
+                    
+                    if (runLengthTentative > PRESORTED_RUN_LENGTH) {
+                        presortedQueue.enqueue(runLengthTentative - 
+                                               runLengthNext);
+                        
+                        presortedQueue.enqueue(runLengthNext);
+                        break;
+                    }
+                    
+                    insertionSort(array,
+                                  offset, 
+                                  offset + runLengthTentative,
+                                  cmp);
+                    
+                    if (size() == 0) {
+                        presortedQueue.enqueue(runLengthTentative);
+                        break mainLoop;
+                    }
+                }
+                
+                offset += runLengthTentative;
+            }
+            
+            return presortedQueue;
+        }
     }
     
+    /**
+     * 
+     * @param <T>
+     * @param array
+     * @param fromIndex
+     * @param toIndex
+     * @param cmp 
+     */
+    private static <T> void insertionSort(final T[] array,
+                                          final int fromIndex,
+                                          final int toIndex,
+                                          final Comparator<? super T> cmp) {
+        for (int i = fromIndex + 1; i < toIndex; ++i) {
+            final T key = array[i];
+            int j = i - 1;
+
+            while (j >= fromIndex && cmp.compare(array[j], key) > 0) {
+                array[j + 1] = array[j];
+                --j;
+            }
+
+            array[j + 1] = key;
+        }
+    }
+        
     /**
      * Merges two consecutive runs into one run.
      * 
