@@ -9,7 +9,7 @@ import java.util.Objects;
  */
 public final class NaturalMergesortV2 {
     
-    private static final int PRESORTED_RUN_LENGTH = 32;
+    private static final int PRESORTED_RUN_LENGTH = 16;
     
     /**
      * Sorts entirely the input array.

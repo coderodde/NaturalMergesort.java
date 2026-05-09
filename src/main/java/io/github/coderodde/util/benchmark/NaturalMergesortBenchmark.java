@@ -11,7 +11,7 @@ import java.util.Random;
 
 final class NaturalMergesortBenchmark {
     
-    private static final int NUMBER_OF_ARRAYS = 10;
+    private static final int NUMBER_OF_ARRAYS = 20;
     
     public static void main(String[] args) {
         
