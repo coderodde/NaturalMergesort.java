@@ -356,7 +356,7 @@ public final class NaturalMergesort {
               new RunLengthQueue<>(array,
                                    fromIndex,
                                    toIndex, 
-                                   storage.length,
+                                   fixCapacity(size()),
                                    cmp);
             
             int offset = fromIndex;
@@ -407,12 +407,14 @@ public final class NaturalMergesort {
     }
     
     /**
+     * Sorts the range {@code array[fromIndex ... toIndex - 1]} via insertion
+     * sort.
      * 
-     * @param <T>
-     * @param array
-     * @param fromIndex
-     * @param toIndex
-     * @param cmp 
+     * @param <T>       the type of the array component.
+     * @param array     the target array.
+     * @param fromIndex the starting, inclusive index.
+     * @param toIndex   the ending, exclusive index.
+     * @param cmp       the comparator.
      */
     private static <T> void insertionSort(final T[] array,
                                           final int fromIndex,
@@ -421,10 +423,17 @@ public final class NaturalMergesort {
         for (int i = fromIndex + 1; i < toIndex; ++i) {
             final T key = array[i];
             int j = i - 1;
-
-            while (j >= fromIndex && cmp.compare(array[j], key) > 0) {
-                array[j + 1] = array[j];
-                --j;
+            
+            if (cmp.compare(array[fromIndex], key) < 0) {
+                while (cmp.compare(array[j], key) > 0) {
+                    array[j + 1] = array[j];
+                    --j;
+                }
+            } else {
+                while (j >= fromIndex) {
+                    array[j + 1] = array[j];
+                    --j;
+                }
             }
 
             array[j + 1] = key;
