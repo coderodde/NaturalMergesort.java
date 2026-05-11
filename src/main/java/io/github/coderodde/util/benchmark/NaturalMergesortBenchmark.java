@@ -1,11 +1,10 @@
 package io.github.coderodde.util.benchmark;
 
 import io.github.coderodde.statistics.run.Runner;
-import io.github.coderodde.util.NaturalMergesort;
+import io.github.coderodde.util.Arrays;
 import static io.github.coderodde.util.Utils.arraysEqual;
 import static io.github.coderodde.util.Utils.isSorted;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -209,7 +208,11 @@ final class NaturalMergesortBenchmark {
         final Integer[] array = createRandomArray(random);
         
         for (int i = 0; i < 1_000; ++i) {
-            Arrays.sort(array, 1_000 * i, 1_000 * (i + 1), Integer::compare);
+            java.util.Arrays.sort(
+                    array, 
+                    1_000 * i, 
+                    1_000 * (i + 1), 
+                    Integer::compare);
         }
         
         return array;
@@ -250,8 +253,8 @@ final class NaturalMergesortBenchmark {
                 throw new IllegalStateException("Should not get here.");
             }
             
-            NaturalMergesort.doPerformPresort(false);
-            NaturalMergesort.sort(data.get(runned++), Integer::compare);
+            Arrays.NaturalMergesort.doPerformPresort(false);
+            Arrays.NaturalMergesort.sort(data.get(runned++), Integer::compare);
         }
     }
     
@@ -271,8 +274,8 @@ final class NaturalMergesortBenchmark {
                 throw new IllegalStateException("Should not get here.");
             }
             
-            NaturalMergesort.doPerformPresort(true);
-            NaturalMergesort.sort(data.get(runned++), Integer::compare);
+            Arrays.NaturalMergesort.doPerformPresort(true);
+            Arrays.NaturalMergesort.sort(data.get(runned++), Integer::compare);
         }
     }
     
@@ -292,7 +295,7 @@ final class NaturalMergesortBenchmark {
                 throw new IllegalStateException("Should not get here.");
             }
             
-            Arrays.sort(data.get(runned++), Integer::compare);
+            java.util.Arrays.sort(data.get(runned++), Integer::compare);
         }
     }
         
