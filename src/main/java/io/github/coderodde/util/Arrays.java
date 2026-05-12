@@ -1,5 +1,6 @@
 package io.github.coderodde.util;
 
+import io.github.coderodde.util.Arrays.Powersort.RunStack.RunStackEntry;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -656,7 +657,64 @@ public final class Arrays {
                 return;
             }
             
-            final T[] buffer = (T[]) new Object[rangeLength / 2];
+            final T[] buffer = (T[])  new Object[rangeLength / 2];
+            final RunStack runStack = new RunStack(rangeLength);
+            
+            int b1 = fromIndex;
+            int e1 = firstRunOf(array, 
+                                b1,
+                                toIndex,
+                                cmp);
+            
+            while (e1 < toIndex) {
+                int b2 = e1 + 1;
+                int e2 = firstRunOf(array,
+                                    b2,
+                                    toIndex,
+                                    cmp);
+                
+                final int power = nodePower(rangeLength, 
+                                            b1, 
+                                            e1,
+                                            b2, 
+                                            e2);
+                
+                while (!runStack.isEmpty() && runStack.top().runPower > power) {
+                    final RunStackEntry entry = runStack.pop();
+                    final int offset  = b1;
+                    final int runLengthLeft  = e1 - b1;
+                    final int runLengthRight = entry.runLength;
+
+                    merge(array, 
+                          buffer, 
+                          offset,
+                          runLengthLeft, 
+                          runLengthRight,
+                          cmp);
+
+                    e1 += entry.runLength;
+                }
+                
+                runStack.push(b1, e1 - b1, power);
+                b1 = b2;
+                e1 = e2;
+            }
+            
+            while (!runStack.isEmpty()) {
+                final RunStackEntry entry = runStack.pop();
+                final int offset  = b1;
+                final int runLengthLeft  = e1 - b1;
+                final int runLengthRight = entry.runLength;
+                
+                merge(array, 
+                      buffer, 
+                      offset,
+                      runLengthLeft, 
+                      runLengthRight,
+                      cmp);
+                
+                e1 += entry.runLength;
+            }
         }
         
         private Powersort() {
@@ -669,12 +727,74 @@ public final class Arrays {
                                       final int runLengthLeft,
                                       final int runLengthRight,
                                       final Comparator<? super T> cmp) {
-            
+            if (runLengthLeft <= runLengthRight) {
+                // Once here, the left run is copied to the buffer:
+                System.arraycopy(array,
+                                 offset, 
+                                 buffer,
+                                 0, 
+                                 runLengthLeft);
+                
+                int indexLeft  = 0;
+                int indexRight = offset + runLengthLeft;
+                int indexArray = offset;
+                
+                final int indexBoundLeft  = runLengthLeft;
+                final int indexBoundRight = offset 
+                                          + runLengthLeft
+                                          + runLengthRight;
+                
+                while (indexLeft  != indexBoundLeft &&
+                       indexRight != indexBoundRight) {
+                    
+                    array[indexArray++] = 
+                            cmp.compare(buffer[indexLeft],
+                                        array[indexRight]) <= 0 ?
+                            buffer[indexLeft++] :
+                            array[indexRight++];
+                }
+                
+                System.arraycopy(buffer,
+                                 indexLeft, 
+                                 array, 
+                                 indexRight, 
+                                 indexBoundLeft - indexLeft);
+            } else {
+                // Once here, the right run is copied to the buffer:
+                System.arraycopy(array,
+                                 offset + runLengthLeft, 
+                                 buffer,
+                                 0, 
+                                 runLengthRight);
+                
+                int indexLeft  = offset;
+                int indexRight = 0;
+                int indexArray = offset;
+                
+                final int indexBoundLeft  = offset + runLengthLeft;
+                final int indexBoundRight = runLengthRight;
+                
+                while (indexLeft  != indexBoundLeft &&
+                       indexRight != indexBoundRight) {
+                    
+                    array[indexArray++] = 
+                            cmp.compare(array[indexLeft], 
+                                        buffer[indexRight]) <= 0 ?
+                            array[indexLeft++] :
+                            buffer[indexRight++];
+                } 
+                
+                System.arraycopy(buffer, 
+                                 indexRight, 
+                                 array, 
+                                 indexLeft, 
+                                 indexBoundRight - indexRight);
+            }
         }
         
-        private static final class RunStack {
+        static final class RunStack {
             
-            private final static class RunStackEntry {
+            final static class RunStackEntry {
                 int runOffset;
                 int runLength;
                 int runPower;

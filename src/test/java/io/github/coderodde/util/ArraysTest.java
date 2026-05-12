@@ -6,10 +6,10 @@ import java.util.Random;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class NaturalMergesortTest {
+public class ArraysTest {
 
     @Test
-    public void sortsZeroElements() {
+    public void naturalMergesortsortsZeroElements() {
         Arrays.NaturalMergesort.doPerformPresort(false);
         Integer[] arr = {};
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -17,7 +17,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsOneElements() {
+    public void naturalMergesortsortsOneElements() {
         Arrays.NaturalMergesort.doPerformPresort(false);
         Integer[] arr = { -1 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -26,7 +26,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsTwoElementsAlreadySorted() {
+    public void naturalMergesortsortsTwoElementsAlreadySorted() {
         Arrays.NaturalMergesort.doPerformPresort(false);
         Integer[] arr = { -1, 1 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -35,7 +35,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsTwoElementsDescending() {
+    public void naturalMergesortsortsTwoElementsDescending() {
         Arrays.NaturalMergesort.doPerformPresort(false);
         Integer[] arr = { 1, -1 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -44,7 +44,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsTwoElementsOnDescendingSubrange() {
+    public void naturalMergesortsortsTwoElementsOnDescendingSubrange() {
         Arrays.NaturalMergesort.doPerformPresort(false);
         Integer[] arr = { 5, 1, -1, 6 };
         Arrays.NaturalMergesort.sort(arr, 1, 3, Integer::compare);
@@ -53,7 +53,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsTwoElementsOnAscendingSubrange() {
+    public void naturalMergesortsortsTwoElementsOnAscendingSubrange() {
         Arrays.NaturalMergesort.doPerformPresort(false);
         Integer[] arr = { 5, -1, 1, 6 };
         Arrays.NaturalMergesort.sort(arr, 1, 3, Integer::compare);
@@ -62,7 +62,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortOnTwoRuns() {
+    public void naturalMergesortsortOnTwoRuns() {
         Arrays.NaturalMergesort.doPerformPresort(false);
         Integer[] arr = { 6, 5, 1, 4, 3, 2 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -71,7 +71,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortOnThreeRuns() {
+    public void naturalMergesortsortOnThreeRuns() {
         Arrays.NaturalMergesort.doPerformPresort(false);
         Integer[] arr = { 7, 5, 8, 4, 2, 6, 3, 1 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -80,7 +80,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void debug1() {
+    public void naturalMergesortdebug1() {
         final Random random = new Random(666L);
         Arrays.NaturalMergesort.doPerformPresort(false);
         Integer[] arr = createRandomArray(random, 40);
@@ -89,7 +89,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void stressTest() {
+    public void naturalMergesortstressTest() {
         final Random random = new Random(13L);
         Arrays.NaturalMergesort.doPerformPresort(false);
         
@@ -101,8 +101,12 @@ public class NaturalMergesortTest {
             final int fromIndex = Math.min(rndInt1, rndInt2);
             final int toIndex   = Math.max(rndInt1, rndInt2);
             
-            Arrays.NaturalMergesort.sort(array1, fromIndex, toIndex, Integer::compare);
-            Arrays.NaturalMergesort.sort(array2, fromIndex, toIndex, Integer::compare);
+            Arrays.NaturalMergesort.sort(array1, 
+                                         fromIndex, 
+                                         toIndex, 
+                                         Integer::compare);
+            
+            java.util.Arrays.sort(array2, fromIndex, toIndex, Integer::compare);
             assertTrue(isSorted(array1, fromIndex, toIndex, Integer::compare));
             assertTrue(isSorted(array2, fromIndex, toIndex, Integer::compare));
             assertTrue(arraysEqual(array1, array2));
@@ -110,7 +114,7 @@ public class NaturalMergesortTest {
     }
 
     @Test
-    public void sortsZeroElementsPresorted() {
+    public void naturalMergesortsortsZeroElementsPresorted() {
         Arrays.NaturalMergesort.doPerformPresort(true);
         Integer[] arr = {};
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -118,7 +122,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsOneElementsPresorted() {
+    public void naturalMergesortsortsOneElementsPresorted() {
         Arrays.NaturalMergesort.doPerformPresort(true);
         Integer[] arr = { -1 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -127,7 +131,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsTwoElementsAlreadySortedPresorted() {
+    public void naturalMergesortsortsTwoElementsAlreadySortedPresorted() {
         Arrays.NaturalMergesort.doPerformPresort(true);
         Integer[] arr = { -1, 1 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -136,7 +140,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsTwoElementsDescendingPresorted() {
+    public void naturalMergesortsortsTwoElementsDescendingPresorted() {
         Arrays.NaturalMergesort.doPerformPresort(true);
         Integer[] arr = { 1, -1 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -145,7 +149,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsTwoElementsOnDescendingSubrangePresorted() {
+    public void naturalMergesortsortsTwoElementsOnDescendingSubrangePresorted() {
         Arrays.NaturalMergesort.doPerformPresort(true);
         Integer[] arr = { 5, 1, -1, 6 };
         Arrays.NaturalMergesort.sort(arr, 1, 3, Integer::compare);
@@ -154,7 +158,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortsTwoElementsOnAscendingSubrangePresorted() {
+    public void naturalMergesortsortsTwoElementsOnAscendingSubrangePresorted() {
         Arrays.NaturalMergesort.doPerformPresort(true);
         Integer[] arr = { 5, -1, 1, 6 };
         Arrays.NaturalMergesort.sort(arr, 1, 3, Integer::compare);
@@ -163,7 +167,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortOnTwoRunsPresorted() {
+    public void naturalMergesortsortOnTwoRunsPresorted() {
         Arrays.NaturalMergesort.doPerformPresort(true);
         Integer[] arr = { 6, 5, 1, 4, 3, 2 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -172,7 +176,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void sortOnThreeRunsPresorted() {
+    public void naturalMergesortsortOnThreeRunsPresorted() {
         Arrays.NaturalMergesort.doPerformPresort(true);
         Integer[] arr = { 7, 5, 8, 4, 2, 6, 3, 1 };
         Arrays.NaturalMergesort.sort(arr, Integer::compare);
@@ -181,7 +185,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void debug1Presorted() {
+    public void naturalMergesortdebug1Presorted() {
         final Random random = new Random(666L);
         Arrays.NaturalMergesort.doPerformPresort(true);
         Integer[] arr = createRandomArray(random, 40);
@@ -190,7 +194,7 @@ public class NaturalMergesortTest {
     }
     
     @Test
-    public void stressTestPresorted() {
+    public void naturalMergesortstressTestPresorted() {
         final Random random = new Random(13L);
         Arrays.NaturalMergesort.doPerformPresort(true);
         
@@ -202,8 +206,12 @@ public class NaturalMergesortTest {
             final int fromIndex = Math.min(rndInt1, rndInt2);
             final int toIndex   = Math.max(rndInt1, rndInt2);
             
-            Arrays.NaturalMergesort.sort(array1, fromIndex, toIndex, Integer::compare);
-            Arrays.NaturalMergesort.sort(array2, fromIndex, toIndex, Integer::compare);
+            Arrays.NaturalMergesort.sort(array1, 
+                                         fromIndex, 
+                                         toIndex,
+                                         Integer::compare);
+            
+            java.util.Arrays.sort(array2, fromIndex, toIndex, Integer::compare);
             assertTrue(isSorted(array1, fromIndex, toIndex, Integer::compare));
             assertTrue(isSorted(array2, fromIndex, toIndex, Integer::compare));
             assertTrue(arraysEqual(array1, array2));
@@ -211,18 +219,109 @@ public class NaturalMergesortTest {
     }
     
     @Test(expected = IndexOutOfBoundsException.class)
-    public void throwsOnNegativeFromIndex() {
+    public void naturalMergesortthrowsOnNegativeFromIndex() {
         Arrays.NaturalMergesort.sort(new Integer[] { 1, 2 }, -1, 1, Integer::compare);
     }
     
     @Test(expected = IndexOutOfBoundsException.class)
-    public void throwsOnTooLargeToIndex() {
+    public void naturalMergesortthrowsOnTooLargeToIndex() {
         Arrays.NaturalMergesort.sort(new Integer[] { 1, 2 }, 0, 3, Integer::compare);
     }
     
     @Test(expected = IndexOutOfBoundsException.class)
-    public void throwsOnFromIndexLargerThanToIndex() {
+    public void naturalMergesortthrowsOnFromIndexLargerThanToIndex() {
         Arrays.NaturalMergesort.sort(new Integer[] { 1, 2 }, 1, 0, Integer::compare);
+    }
+    
+    @Test
+    public void powerSortSortsZeroElements() {
+        Integer[] arr = {};
+        Arrays.Powersort.sort(arr, Integer::compare);
+        assertTrue(Utils.isSorted(arr, Integer::compare));
+    }
+    
+    @Test
+    public void powerSortSortsOneElements() {
+        Integer[] arr = { -1 };
+        Arrays.Powersort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ -1 }));
+    }
+    
+    @Test
+    public void powerSortSortsTwoElementsAlreadySorted() {
+        Integer[] arr = { -1, 1 };
+        Arrays.Powersort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ -1, 1 }));
+    }
+    
+    @Test
+    public void powerSortSortsTwoElementsDescending() {
+        Integer[] arr = { 1, -1 };
+        Arrays.Powersort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ -1, 1 }));
+    }
+    
+    @Test
+    public void powerSortSortsTwoElementsOnDescendingSubrange() {
+        Integer[] arr = { 5, 1, -1, 6 };
+        Arrays.Powersort.sort(arr, 1, 3, Integer::compare);
+        assertTrue(isSorted(arr, 1, 3, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ 5, -1, 1, 6 }));
+    }
+    
+    @Test
+    public void powerSortSortsTwoElementsOnAscendingSubrange() {
+        Integer[] arr = { 5, -1, 1, 6 };
+        Arrays.Powersort.sort(arr, 1, 3, Integer::compare);
+        assertTrue(isSorted(arr, 1, 3, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ 5, -1, 1, 6 }));
+    }
+    
+    @Test
+    public void powerSortSortOnTwoRuns() {
+        Integer[] arr = { 6, 5, 1, 4, 3, 2 };
+        Arrays.Powersort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ 1, 2, 3, 4, 5, 6 }));
+    }
+    
+    @Test
+    public void powerSortSortOnThreeRuns() {
+        Integer[] arr = { 7, 5, 8, 4, 2, 6, 3, 1 };
+        Arrays.Powersort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ 1, 2, 3, 4, 5, 6, 7, 8 }));
+    }
+    
+    @Test
+    public void powerSortDebug1() {
+        final Random random = new Random(666L);
+        Integer[] arr = createRandomArray(random, 40);
+        Arrays.Powersort.sort(arr, 1, arr.length - 1, Integer::compare);
+        assertTrue(isSorted(arr, 1, arr.length - 1, Integer::compare));
+    }
+    
+    @Test
+    public void powerSortStressTest() {
+        final Random random = new Random(13L);
+        
+        for (int i = 0; i < 10; ++i) {
+            final Integer[] array1 = createRandomArray(random);
+            final Integer[] array2 = array1.clone();
+            final int rndInt1 = random.nextInt(array1.length);
+            final int rndInt2 = random.nextInt(array1.length);
+            final int fromIndex = Math.min(rndInt1, rndInt2);
+            final int toIndex   = Math.max(rndInt1, rndInt2);
+            
+            Arrays.Powersort.sort(array1, fromIndex, toIndex, Integer::compare);
+            java.util.Arrays.sort(array2, fromIndex, toIndex, Integer::compare);
+            assertTrue(isSorted(array1, fromIndex, toIndex, Integer::compare));
+            assertTrue(isSorted(array2, fromIndex, toIndex, Integer::compare));
+            assertTrue(arraysEqual(array1, array2));
+        }
     }
     
     private static Integer[] createRandomArray(final Random random) {
