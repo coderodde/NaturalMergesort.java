@@ -265,6 +265,10 @@ public final class Arrays {
                 tailIndex = (tailIndex + 1) & mask;
                 ++size;
             }
+            
+            void extendTailBy(final int runLength) {
+                storage[(tailIndex - 1) & mask] += runLength;
+            }
 
             /**
              * Dequeues the head run length.
@@ -312,10 +316,11 @@ public final class Arrays {
              * @param toIndex   one past the ending index of the range.
              */
             private void build() {
-                int indexLeft                 = fromIndex;
-                int indexRight                = indexLeft + 1;
-                final int upperBoundLeftIndex = toIndex - 1;
-
+                int indexLeft                    = fromIndex;
+                int indexRight                   = indexLeft + 1;
+                final int upperBoundLeftIndex    = toIndex - 1;
+                boolean previousRunWasDescending = false;
+                
                 while (indexLeft < upperBoundLeftIndex) {
                     int indexHead = indexLeft;
 
@@ -329,6 +334,19 @@ public final class Arrays {
                             ++indexLeft;
                             ++indexRight;
                         }
+                        
+                        final int runLength = indexRight - indexHead;
+                        
+                        if (previousRunWasDescending && 
+                            cmp.compare(array[indexHead - 1], 
+                                        array[indexHead]) <= 0) {
+                            
+                            extendTailBy(runLength);
+                        } else {
+                            enqueue(runLength);
+                        }
+                        
+                        previousRunWasDescending = false;
                     } else {
                         // Scan a strictly descending run:
                         while (indexLeft < upperBoundLeftIndex &&
@@ -342,10 +360,20 @@ public final class Arrays {
                         reverseRun(array, 
                                    indexHead, 
                                    indexRight);
+                        
+                        final int runLength = indexRight - indexHead;
+                    
+                        if (previousRunWasDescending &&
+                            cmp.compare(array[indexHead - 1], 
+                                        array[indexHead]) <= 0) {
+                            
+                            extendTailBy(runLength);
+                        } else {
+                            enqueue(runLength);
+                        }
+                        
+                        previousRunWasDescending = true;
                     }
-
-                    // Store the length of the currently scanned run:
-                    enqueue(indexRight - indexHead);
 
                     // Move the indices to the next pair:
                     ++indexLeft;
@@ -353,8 +381,11 @@ public final class Arrays {
                 }
 
                 if (indexLeft == upperBoundLeftIndex) {
-                    // Once here, we have a leftover run of length 1:
-                    enqueue(1);
+                    if (cmp.compare(array[indexLeft - 1], array[indexLeft]) <= 0) {
+                        extendTailBy(1);
+                    } else {
+                        enqueue(1);
+                    }
                 }
             }
 

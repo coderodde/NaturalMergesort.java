@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-final class NaturalMergesortBenchmark {
+final class ArraysBenchmark {
     
     private static final int NUMBER_OF_ARRAYS = 20;
     
@@ -20,16 +20,19 @@ final class NaturalMergesortBenchmark {
         final List<Integer[]> dataA2 = createRandomArrays(random);
         final List<Integer[]> dataA3 = createPresortedArrays(random);
         final List<Integer[]> dataA4 = createBadTailArrays(random);
+        final List<Integer[]> dataA5 = createZigZagArrays();
         
         final List<Integer[]> dataB1 = copy(dataA1);
         final List<Integer[]> dataB2 = copy(dataA2);
         final List<Integer[]> dataB3 = copy(dataA3);
         final List<Integer[]> dataB4 = copy(dataA4);
+        final List<Integer[]> dataB5 = copy(dataA5);
         
         final List<Integer[]> dataC1 = copy(dataA1);
         final List<Integer[]> dataC2 = copy(dataA2);
         final List<Integer[]> dataC3 = copy(dataA3);
         final List<Integer[]> dataC4 = copy(dataA4);
+        final List<Integer[]> dataC5 = copy(dataA5);
         
         final NaturalMergesortBenchmarkRunnable runnableA1 = 
           new NaturalMergesortBenchmarkRunnable(dataA1);
@@ -43,6 +46,9 @@ final class NaturalMergesortBenchmark {
         final NaturalMergesortBenchmarkRunnable runnableA4 = 
           new NaturalMergesortBenchmarkRunnable(dataA4);
         
+        final NaturalMergesortBenchmarkRunnable runnableA5 = 
+          new NaturalMergesortBenchmarkRunnable(dataA5);
+        
         final NaturalMergesortV2BenchmarkRunnable runnableB1 = 
           new NaturalMergesortV2BenchmarkRunnable(dataB1);
         
@@ -55,6 +61,9 @@ final class NaturalMergesortBenchmark {
         final NaturalMergesortV2BenchmarkRunnable runnableB4 = 
           new NaturalMergesortV2BenchmarkRunnable(dataB4);
         
+        final NaturalMergesortV2BenchmarkRunnable runnableB5 = 
+          new NaturalMergesortV2BenchmarkRunnable(dataB5);
+        
         final ArraysSortBenchmarkRunnable runnableC1 = 
           new ArraysSortBenchmarkRunnable(dataC1);
         
@@ -66,6 +75,9 @@ final class NaturalMergesortBenchmark {
         
         final ArraysSortBenchmarkRunnable runnableC4 = 
           new ArraysSortBenchmarkRunnable(dataC4);
+        
+        final ArraysSortBenchmarkRunnable runnableC5 = 
+          new ArraysSortBenchmarkRunnable(dataC5);
         
         System.out.println(
         """
@@ -101,14 +113,22 @@ final class NaturalMergesortBenchmark {
         System.out.println(Runner.measure(runnableC4, NUMBER_OF_ARRAYS));
         System.out.println();
         
+        System.out.println("--- Zig zag data ---");
+        System.out.println(Runner.measure(runnableA5, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableB5, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableC5, NUMBER_OF_ARRAYS));
+        System.out.println();
+        
         final boolean equal1 = arrayListsEqual(dataA1, dataB1);
         final boolean equal2 = arrayListsEqual(dataA2, dataB2);
         final boolean equal3 = arrayListsEqual(dataA3, dataB3);
         final boolean equal4 = arrayListsEqual(dataA4, dataB4);
-        final boolean equal5 = arrayListsEqual(dataA1, dataC1);
-        final boolean equal6 = arrayListsEqual(dataA2, dataC2);
-        final boolean equal7 = arrayListsEqual(dataA3, dataC3);
-        final boolean equal8 = arrayListsEqual(dataA4, dataC4);
+        final boolean equal5 = arrayListsEqual(dataA5, dataB5);
+        final boolean equal6 = arrayListsEqual(dataA1, dataC1);
+        final boolean equal7 = arrayListsEqual(dataA2, dataC2);
+        final boolean equal8 = arrayListsEqual(dataA3, dataC3);
+        final boolean equal9 = arrayListsEqual(dataA4, dataC4);
+        final boolean equalA = arrayListsEqual(dataA5, dataC5);
         
         System.out.printf("Algorithms agree: %b.\n", equal1 &&
                                                      equal2 &&
@@ -117,21 +137,26 @@ final class NaturalMergesortBenchmark {
                                                      equal5 &&
                                                      equal6 &&
                                                      equal7 &&
-                                                     equal8);
+                                                     equal8 &&
+                                                     equal9 &&
+                                                     equalA);
         
         System.out.printf("All arrays are sorted: %b.\n",
                           allSorted(dataA1) &&
                           allSorted(dataA2) &&
                           allSorted(dataA3) &&
                           allSorted(dataA4) &&
+                          allSorted(dataA5) &&
                           allSorted(dataB1) &&
                           allSorted(dataB2) &&
                           allSorted(dataB3) &&
                           allSorted(dataB4) &&
+                          allSorted(dataB5) &&
                           allSorted(dataC1) &&
                           allSorted(dataC2) &&
                           allSorted(dataC3) &&
-                          allSorted(dataC4));
+                          allSorted(dataC4) &&
+                          allSorted(dataC5));
     }
     
     private static List<Integer[]> createSortedArrays() {
@@ -169,6 +194,16 @@ final class NaturalMergesortBenchmark {
         
         for (int i = 0; i < NUMBER_OF_ARRAYS; ++i) {
             arrays.add(createBadTailArray());
+        }
+        
+        return arrays;
+    }
+    
+    private static List<Integer[]> createZigZagArrays() {
+        List<Integer[]> arrays = new ArrayList<>(NUMBER_OF_ARRAYS);
+        
+        for (int i = 0; i < NUMBER_OF_ARRAYS; ++i) {
+            arrays.add(createZigZagArray());
         }
         
         return arrays;
@@ -231,6 +266,23 @@ final class NaturalMergesortBenchmark {
         
         for (int i = 1024 * 1024; i < array.length; ++i) {
             array[index++] = i - 2_000_000;
+        }
+        
+        return array;
+        
+    }
+    
+    private static Integer[] createZigZagArray() {
+        final Integer[] array = new Integer[1_000_000];
+        
+        for (int i = 0; i < array.length; ++i) {
+            array[i] = i;
+        }
+        
+        for (int i = 0; i < array.length; i += 2) {
+            Integer tmp = array[i];
+            array[i] = array[i + 1];
+            array[i + 1] = tmp;
         }
         
         return array;
