@@ -10,7 +10,7 @@ import java.util.Random;
 
 final class ArraysBenchmark {
     
-    private static final int NUMBER_OF_ARRAYS = 15;
+    private static final int NUMBER_OF_ARRAYS = 10;
     
     public static void main(String[] args) {
         

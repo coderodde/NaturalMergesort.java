@@ -322,7 +322,7 @@ public final class Arrays {
                 boolean previousRunWasDescending = false;
                 
                 while (indexLeft < upperBoundLeftIndex) {
-                    int indexHead = indexLeft;
+                    final int indexHead = indexLeft;
 
                     // Decide the direction of the next run:
                     if (cmp.compare(array[indexLeft], array[indexRight]) <= 0) {
@@ -882,31 +882,22 @@ public final class Arrays {
             final int a = (int) ((l2 << 30) / n);
             final int b = (int) ((r2 << 30) / n);
             
-            return Integer.numberOfLeadingZeros(a ^b);
-//            final int n1 = e1 - b1;
-//            final int n2 = e2 - b2;
-//            final double a = ((double) b1 + (double) n1 / 2.0) / n;
-//            final double b = ((double) b2 + (double) n2 / 2.0) / n;
-//            int p = 0;
-//            
-//            while ((int) Math.floor(a * Math.pow(2, p)) ==
-//                   (int) Math.floor(b * Math.pow(2, p))) {
-//                
-//                ++p;
-//            }
-//            
-//            return p;
+            return Integer.numberOfLeadingZeros(a ^ b);
         }
         
         private static <T> int firstRunOf(final T[] array,
                                           final int fromIndex,
                                           final int toIndex,
                                           final Comparator<? super T> cmp) {
-            int indexLeft                 = fromIndex;
-            int indexRight               = indexLeft + 1;
-            final int upperBoundIndexLeft = toIndex - 1;
+            
+            int indexLeft                    = fromIndex;
+            int indexRight                   = indexLeft + 1;
+            final int upperBoundIndexLeft    = toIndex - 1;
+            boolean previousRunWasDescending = false;
             
             while (indexLeft < upperBoundIndexLeft) {
+                final int indexHead = indexLeft;
+                
                 if (cmp.compare(array[indexLeft], array[indexRight]) <= 0) {
                     while (indexLeft < upperBoundIndexLeft && 
                            cmp.compare(array[indexLeft], 
@@ -916,7 +907,18 @@ public final class Arrays {
                         ++indexRight;
                     }
                     
-                    return indexRight;
+                    
+                    if (previousRunWasDescending &&
+                        cmp.compare(array[indexHead - 1],
+                                    array[indexHead]) <= 0) {
+                        
+                        final int runLength = indexRight - indexHead;
+                        indexRight += runLength;
+                    } else {
+                        return indexRight;
+                    }
+                    
+                    previousRunWasDescending = false;
                 } else {
                     while (indexLeft < upperBoundIndexLeft &&
                            cmp.compare(array[indexLeft],
@@ -926,9 +928,26 @@ public final class Arrays {
                         ++indexRight;
                     }
                     
-                    reverseRun(array, fromIndex, indexRight);
-                    return indexRight;
+                    reverseRun(array, 
+                               fromIndex,
+                               indexRight);
+                    
+                    
+                    if (previousRunWasDescending &&
+                        cmp.compare(array[indexHead - 1],
+                                    array[indexHead]) <= 0) {
+                        
+                        final int runLength = indexRight - indexHead;
+                        indexRight += runLength;
+                    } else {
+                        return indexRight;
+                    }
+                    
+                    previousRunWasDescending = true;
                 }
+                
+                ++indexLeft;
+                ++indexRight;
             }
             
             return toIndex;
