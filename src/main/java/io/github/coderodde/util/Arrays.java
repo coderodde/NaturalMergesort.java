@@ -902,13 +902,6 @@ public final class Arrays {
                     } while (indexRight < toIndex &&
                              cmp.compare(array[indexLeft], 
                                          array[indexRight]) <= 0);
-                    
-//                    while (indexRight < toIndex &&
-//                           cmp.compare(array[indexRight - 1], 
-//                                       array[indexRight]) <= 0) {
-//                        
-//                        ++indexRight;
-//                    }
                 } else {
                     do {
                         ++indexLeft;
@@ -916,13 +909,6 @@ public final class Arrays {
                     } while (indexRight < toIndex &&
                              cmp.compare(array[indexLeft], 
                                          array[indexRight]) > 0);
-                    
-//                    while (indexRight < toIndex &&
-//                           cmp.compare(array[indexRight - 1],
-//                                       array[indexRight]) > 0) {
-//                        
-//                        ++indexRight;
-//                    }
                     
                     reverseRun(array,
                                indexHead,
@@ -946,73 +932,6 @@ public final class Arrays {
         
             return toIndex;
         }
-//        
-//        private static <T> int firstRunOf(final T[] array,
-//                                          final int fromIndex,
-//                                          final int toIndex,
-//                                          final Comparator<? super T> cmp) {
-//            
-//            int indexLeft                    = fromIndex;
-//            int indexRight                   = indexLeft + 1;
-//            final int upperBoundIndexLeft    = toIndex - 1;
-//            boolean previousRunWasDescending = false;
-//            
-//            while (indexLeft < upperBoundIndexLeft) {
-//                final int indexHead = indexLeft;
-//                
-//                if (cmp.compare(array[indexLeft], array[indexRight]) <= 0) {
-//                    while (indexLeft < upperBoundIndexLeft && 
-//                           cmp.compare(array[indexLeft], 
-//                                       array[indexRight]) <= 0) {
-//                        
-//                        ++indexLeft;
-//                        ++indexRight;
-//                    }
-//                    
-//                    
-//                    if (previousRunWasDescending &&
-//                        cmp.compare(array[indexHead - 1],
-//                                    array[indexHead]) <= 0) {
-//                        
-//                        final int runLength = indexRight - indexHead;
-//                        indexRight += runLength;
-//                    } else {
-//                        return indexRight;
-//                    }
-//                    
-//                    previousRunWasDescending = false;
-//                } else {
-//                    while (indexLeft < upperBoundIndexLeft &&
-//                           cmp.compare(array[indexLeft],
-//                                       array[indexRight]) > 0) {
-//                        
-//                        ++indexLeft;
-//                        ++indexRight;
-//                    }
-//                    
-//                    reverseRun(array, 
-//                               indexHead,
-//                               indexRight);
-//                    
-//                    if (previousRunWasDescending &&
-//                        cmp.compare(array[indexHead - 1],
-//                                    array[indexHead]) <= 0) {
-//                        
-//                        final int runLength = indexRight - indexHead;
-//                        indexRight += runLength;
-//                    } else {
-//                        return indexRight;
-//                    }
-//                    
-//                    previousRunWasDescending = true;
-//                }
-//                
-//                ++indexLeft;
-//                ++indexRight;
-//            }
-//            
-//            return toIndex;
-//        }
     }
     
     /**
