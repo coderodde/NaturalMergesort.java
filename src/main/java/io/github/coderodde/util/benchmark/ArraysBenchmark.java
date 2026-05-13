@@ -10,7 +10,7 @@ import java.util.Random;
 
 final class ArraysBenchmark {
     
-    private static final int NUMBER_OF_ARRAYS = 20;
+    private static final int NUMBER_OF_ARRAYS = 15;
     
     public static void main(String[] args) {
         
@@ -172,21 +172,24 @@ final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableD6, NUMBER_OF_ARRAYS));
         System.out.println();
         
-        final boolean equal1 = arrayListsEqual(dataA1, dataB1);
-        final boolean equal2 = arrayListsEqual(dataA2, dataB2);
-        final boolean equal3 = arrayListsEqual(dataA3, dataB3);
-        final boolean equal4 = arrayListsEqual(dataA4, dataB4);
-        final boolean equal5 = arrayListsEqual(dataA5, dataB5);
-        final boolean equal6 = arrayListsEqual(dataA1, dataC1);
-        final boolean equal7 = arrayListsEqual(dataA2, dataC2);
-        final boolean equal8 = arrayListsEqual(dataA3, dataC3);
-        final boolean equal9 = arrayListsEqual(dataA4, dataC4);
-        final boolean equal10 = arrayListsEqual(dataA5, dataC5);
-        final boolean equal11 = arrayListsEqual(dataA1, dataD1);
-        final boolean equalC = arrayListsEqual(dataA2, dataD2);
-        final boolean equalD = arrayListsEqual(dataA3, dataD3);
-        final boolean equalE = arrayListsEqual(dataA4, dataD4);
-        final boolean equalF = arrayListsEqual(dataA5, dataD5);
+        final boolean equal1  = arrayListsEqual(dataA1, dataB1);
+        final boolean equal2  = arrayListsEqual(dataA2, dataB2);
+        final boolean equal3  = arrayListsEqual(dataA3, dataB3);
+        final boolean equal4  = arrayListsEqual(dataA4, dataB4);
+        final boolean equal5  = arrayListsEqual(dataA5, dataB5);
+        final boolean equal6  = arrayListsEqual(dataA6, dataB6);
+        final boolean equal7  = arrayListsEqual(dataA1, dataC1);
+        final boolean equal8  = arrayListsEqual(dataA2, dataC2);
+        final boolean equal9  = arrayListsEqual(dataA3, dataC3);
+        final boolean equal10 = arrayListsEqual(dataA4, dataC4);
+        final boolean equal11 = arrayListsEqual(dataA5, dataC5);
+        final boolean equal12 = arrayListsEqual(dataA6, dataC6);
+        final boolean equal13 = arrayListsEqual(dataA1, dataD1);
+        final boolean equal14 = arrayListsEqual(dataA2, dataD2);
+        final boolean equal15 = arrayListsEqual(dataA3, dataD3);
+        final boolean equal16 = arrayListsEqual(dataA4, dataD4);
+        final boolean equal17 = arrayListsEqual(dataA5, dataD5);
+        final boolean equal18 = arrayListsEqual(dataA6, dataD6);
         
         System.out.printf("Algorithms agree: %b.\n", equal1 &&
                                                      equal2 &&
@@ -199,10 +202,13 @@ final class ArraysBenchmark {
                                                      equal9 &&
                                                      equal10 &&
                                                      equal11 &&
-                                                     equalC &&
-                                                     equalD &&
-                                                     equalE &&
-                                                     equalF);
+                                                     equal12 &&
+                                                     equal13 &&
+                                                     equal14 &&
+                                                     equal15 &&
+                                                     equal16 &&
+                                                     equal17 &&
+                                                     equal18);
         
         System.out.printf("All arrays are sorted: %b.\n",
                           allSorted(dataA1) &&
@@ -210,21 +216,25 @@ final class ArraysBenchmark {
                           allSorted(dataA3) &&
                           allSorted(dataA4) &&
                           allSorted(dataA5) &&
+                          allSorted(dataA6) &&
                           allSorted(dataB1) &&
                           allSorted(dataB2) &&
                           allSorted(dataB3) &&
                           allSorted(dataB4) &&
                           allSorted(dataB5) &&
+                          allSorted(dataB6) &&
                           allSorted(dataC1) &&
                           allSorted(dataC2) &&
                           allSorted(dataC3) &&
                           allSorted(dataC4) &&
                           allSorted(dataC5) &&
+                          allSorted(dataC6) &&
                           allSorted(dataD1) &&
                           allSorted(dataD2) &&
                           allSorted(dataD3) &&
                           allSorted(dataD4) &&
-                          allSorted(dataD5));
+                          allSorted(dataD5) &&
+                          allSorted(dataD6));
     }
     
     private static List<Integer[]> createSortedArrays() {
@@ -375,27 +385,26 @@ final class ArraysBenchmark {
         while (index < array.length) {
             final int remaining = array.length - index;
             int currentRunLength = (1 + random.nextInt(remaining)) / 57;
-            currentRunLength = Math.max(4, currentRunLength);
+            currentRunLength = Math.min(remaining, 
+                                        Math.max(4, currentRunLength));
             
-            for (int j = index; j < index + currentRunLength; ++j) {
+            for (int j = index; 
+                    j < Math.min(index + currentRunLength, array.length);
+                    j++) {
+                
                 array[j] = j - index;
             }
             
             index += currentRunLength;
         }
         
-        for (int i = 0; i < array.length; ++i) {
-            array[i] = i;
-        }
-        
-        for (int i = 0; i < array.length; i += 2) {
+        for (int i = 0; i + 1 < array.length; i += 2) {
             Integer tmp = array[i];
             array[i] = array[i + 1];
             array[i + 1] = tmp;
         }
         
         return array;
-        
     }
     
     private static final class NaturalMergesortBenchmarkRunnable 
