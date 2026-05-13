@@ -698,23 +698,23 @@ public final class Arrays {
                                 cmp);
             
             while (e1 < toIndex) {
-                int b2 = e1 + 1;
+                int b2 = e1;
                 int e2 = firstRunOf(array,
                                     b2,
                                     toIndex,
                                     cmp);
                 
                 final int power = nodePower(rangeLength, 
-                                            b1, 
-                                            e1,
-                                            b2, 
-                                            e2);
+                                            b1 - fromIndex, 
+                                            e1 - fromIndex,
+                                            b2 - fromIndex, 
+                                            e2 - fromIndex);
                 
                 while (!runStack.isEmpty() && runStack.top().runPower > power) {
                     final RunStackEntry entry = runStack.pop();
-                    final int offset  = b1;
-                    final int runLengthLeft  = e1 - b1;
-                    final int runLengthRight = entry.runLength;
+                    final int offset = entry.runOffset;
+                    final int runLengthLeft  = entry.runLength;
+                    final int runLengthRight = e1 - b1;
 
                     merge(array, 
                           buffer, 
@@ -723,7 +723,8 @@ public final class Arrays {
                           runLengthRight,
                           cmp);
 
-                    e1 += entry.runLength;
+                    b1 = offset;
+                    e1 = offset + runLengthLeft + runLengthRight;
                 }
                 
                 runStack.push(b1, e1 - b1, power);
@@ -733,9 +734,9 @@ public final class Arrays {
             
             while (!runStack.isEmpty()) {
                 final RunStackEntry entry = runStack.pop();
-                final int offset  = b1;
-                final int runLengthLeft  = e1 - b1;
-                final int runLengthRight = entry.runLength;
+                final int offset         = entry.runOffset;
+                final int runLengthLeft  = entry.runLength;
+                final int runLengthRight = e1 - b1;
                 
                 merge(array, 
                       buffer, 
@@ -744,7 +745,8 @@ public final class Arrays {
                       runLengthRight,
                       cmp);
                 
-                e1 += entry.runLength;
+                b1 = offset;
+                e1 = offset + runLengthLeft + runLengthRight;
             }
         }
         
@@ -788,7 +790,7 @@ public final class Arrays {
                 System.arraycopy(buffer,
                                  indexLeft, 
                                  array, 
-                                 indexRight, 
+                                 indexArray, 
                                  indexBoundLeft - indexLeft);
             } else {
                 // Once here, the right run is copied to the buffer:
@@ -798,28 +800,26 @@ public final class Arrays {
                                  0, 
                                  runLengthRight);
                 
-                int indexLeft  = offset;
-                int indexRight = 0;
-                int indexArray = offset;
+                int indexLeft  = offset + runLengthLeft - 1;
+                int indexRight = runLengthRight - 1;
+                int indexArray = offset + runLengthLeft + runLengthRight - 1;
                 
-                final int indexBoundLeft  = offset + runLengthLeft;
-                final int indexBoundRight = runLengthRight;
+                final int indexBoundLeft  = offset;
                 
-                while (indexLeft  != indexBoundLeft &&
-                       indexRight != indexBoundRight) {
+                while (indexLeft  >= indexBoundLeft && indexRight >= 0) {
                     
-                    array[indexArray++] = 
+                    array[indexArray--] = 
                             cmp.compare(array[indexLeft], 
-                                        buffer[indexRight]) <= 0 ?
-                            array[indexLeft++] :
-                            buffer[indexRight++];
+                                        buffer[indexRight]) > 0 ?
+                            array[indexLeft--] :
+                            buffer[indexRight--];
                 } 
                 
                 System.arraycopy(buffer, 
-                                 indexRight, 
+                                 0, 
                                  array, 
-                                 indexLeft, 
-                                 indexBoundRight - indexRight);
+                                 offset, 
+                                 indexRight + 1);
             }
         }
         
@@ -876,19 +876,26 @@ public final class Arrays {
                                      final int e1,
                                      final int b2,
                                      final int e2) {
-            final int n1 = e1 - b1;
-            final int n2 = e2 - b2;
-            final double a = ((double) b1 + (double) n1 / 2.0) / n;
-            final double b = ((double) b2 + (double) n2 / 2.0) / n;
-            int p = 0;
+            final long l2 = (long) b1 + b2;
+            final long r2 = (long) b2 + e2;
             
-            while ((int) Math.floor(a * Math.pow(2, p)) ==
-                   (int) Math.floor(b * Math.pow(2, p))) {
-                
-                ++p;
-            }
+            final int a = (int) ((l2 << 30) / n);
+            final int b = (int) ((r2 << 30) / n);
             
-            return p;
+            return Integer.numberOfLeadingZeros(a ^b);
+//            final int n1 = e1 - b1;
+//            final int n2 = e2 - b2;
+//            final double a = ((double) b1 + (double) n1 / 2.0) / n;
+//            final double b = ((double) b2 + (double) n2 / 2.0) / n;
+//            int p = 0;
+//            
+//            while ((int) Math.floor(a * Math.pow(2, p)) ==
+//                   (int) Math.floor(b * Math.pow(2, p))) {
+//                
+//                ++p;
+//            }
+//            
+//            return p;
         }
         
         private static <T> int firstRunOf(final T[] array,

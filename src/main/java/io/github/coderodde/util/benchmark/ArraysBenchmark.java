@@ -14,6 +14,7 @@ final class ArraysBenchmark {
     
     public static void main(String[] args) {
         
+        System.out.println("Preparing benchmark data...");
         final Random random = new Random(114L);
         
         final List<Integer[]> dataA1 = createSortedArrays();
@@ -33,6 +34,14 @@ final class ArraysBenchmark {
         final List<Integer[]> dataC3 = copy(dataA3);
         final List<Integer[]> dataC4 = copy(dataA4);
         final List<Integer[]> dataC5 = copy(dataA5);
+        
+        System.out.println("Benchmark data prepared.");
+        
+        final List<Integer[]> dataD1 = copy(dataA1);
+        final List<Integer[]> dataD2 = copy(dataA2);
+        final List<Integer[]> dataD3 = copy(dataA3);
+        final List<Integer[]> dataD4 = copy(dataA4);
+        final List<Integer[]> dataD5 = copy(dataA5);
         
         final NaturalMergesortBenchmarkRunnable runnableA1 = 
           new NaturalMergesortBenchmarkRunnable(dataA1);
@@ -79,12 +88,28 @@ final class ArraysBenchmark {
         final ArraysSortBenchmarkRunnable runnableC5 = 
           new ArraysSortBenchmarkRunnable(dataC5);
         
+        final PowersortBenchmarkRunnable runnableD1 = 
+          new PowersortBenchmarkRunnable(dataD1);
+        
+        final PowersortBenchmarkRunnable runnableD2 = 
+          new PowersortBenchmarkRunnable(dataD2);
+        
+        final PowersortBenchmarkRunnable runnableD3 = 
+          new PowersortBenchmarkRunnable(dataD3);
+        
+        final PowersortBenchmarkRunnable runnableD4 = 
+          new PowersortBenchmarkRunnable(dataD4);
+        
+        final PowersortBenchmarkRunnable runnableD5 = 
+          new PowersortBenchmarkRunnable(dataD5);
+        
         System.out.println(
         """
         *********************************************************************
         * After each title --- Title ---, the first row is for the          *
         * NaturalMergesort.sort, the second row is for the                  *
-        * NaturalMergesortV2.sort, and the last row is for the Arrays.sort. *
+        * NaturalMergesort.sort iwth presorting, the third row is for the   *
+        * Arrays.sort, and the fourth row is for the Powersort.sort.        *
         *********************************************************************
         """
         );
@@ -93,30 +118,35 @@ final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableA1, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB1, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC1, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableD1, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.out.println("--- Random data ---");
         System.out.println(Runner.measure(runnableA2, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB2, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC2, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableD2, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.out.println("--- Presorted data ---");
         System.out.println(Runner.measure(runnableA3, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB3, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC3, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableD3, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.out.println("--- Bad tail data ---");
         System.out.println(Runner.measure(runnableA4, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB4, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC4, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableD4, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.out.println("--- Zig zag data ---");
         System.out.println(Runner.measure(runnableA5, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB5, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC5, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableD5, NUMBER_OF_ARRAYS));
         System.out.println();
         
         final boolean equal1 = arrayListsEqual(dataA1, dataB1);
@@ -129,6 +159,11 @@ final class ArraysBenchmark {
         final boolean equal8 = arrayListsEqual(dataA3, dataC3);
         final boolean equal9 = arrayListsEqual(dataA4, dataC4);
         final boolean equalA = arrayListsEqual(dataA5, dataC5);
+        final boolean equalB = arrayListsEqual(dataA1, dataD1);
+        final boolean equalC = arrayListsEqual(dataA2, dataD2);
+        final boolean equalD = arrayListsEqual(dataA3, dataD3);
+        final boolean equalE = arrayListsEqual(dataA4, dataD4);
+        final boolean equalF = arrayListsEqual(dataA5, dataD5);
         
         System.out.printf("Algorithms agree: %b.\n", equal1 &&
                                                      equal2 &&
@@ -139,7 +174,12 @@ final class ArraysBenchmark {
                                                      equal7 &&
                                                      equal8 &&
                                                      equal9 &&
-                                                     equalA);
+                                                     equalA &&
+                                                     equalB &&
+                                                     equalC &&
+                                                     equalD &&
+                                                     equalE &&
+                                                     equalF);
         
         System.out.printf("All arrays are sorted: %b.\n",
                           allSorted(dataA1) &&
@@ -156,7 +196,12 @@ final class ArraysBenchmark {
                           allSorted(dataC2) &&
                           allSorted(dataC3) &&
                           allSorted(dataC4) &&
-                          allSorted(dataC5));
+                          allSorted(dataC5) &&
+                          allSorted(dataD1) &&
+                          allSorted(dataD2) &&
+                          allSorted(dataD3) &&
+                          allSorted(dataD4) &&
+                          allSorted(dataD5));
     }
     
     private static List<Integer[]> createSortedArrays() {
@@ -328,6 +373,26 @@ final class ArraysBenchmark {
             
             Arrays.NaturalMergesort.doPerformPresort(true);
             Arrays.NaturalMergesort.sort(data.get(runned++), Integer::compare);
+        }
+    }
+    
+    private static final class PowersortBenchmarkRunnable 
+            implements Runnable {
+
+        private final List<Integer[]> data = new ArrayList<>();
+        private int runned = 0;
+        
+        PowersortBenchmarkRunnable(final List<Integer[]> data) {
+            this.data.addAll(data);
+        }
+        
+        @Override
+        public void run() {
+            if (runned == data.size()) {
+                throw new IllegalStateException("Should not get here.");
+            }
+            
+            Arrays.Powersort.sort(data.get(runned++), Integer::compare);
         }
     }
     
