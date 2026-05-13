@@ -931,7 +931,6 @@ public final class Arrays {
                 }
             }
             
-            // TODO: Do we ever get here?
             return toIndex;
         }
     }

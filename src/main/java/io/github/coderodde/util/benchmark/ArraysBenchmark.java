@@ -20,28 +20,32 @@ final class ArraysBenchmark {
         final List<Integer[]> dataA1 = createSortedArrays();
         final List<Integer[]> dataA2 = createRandomArrays(random);
         final List<Integer[]> dataA3 = createPresortedArrays(random);
-        final List<Integer[]> dataA4 = createBadTailArrays(random);
+        final List<Integer[]> dataA4 = createBadTailArrays();
         final List<Integer[]> dataA5 = createZigZagArrays();
+        final List<Integer[]> dataA6 = createSkewedArrays(random);
         
         final List<Integer[]> dataB1 = copy(dataA1);
         final List<Integer[]> dataB2 = copy(dataA2);
         final List<Integer[]> dataB3 = copy(dataA3);
         final List<Integer[]> dataB4 = copy(dataA4);
         final List<Integer[]> dataB5 = copy(dataA5);
+        final List<Integer[]> dataB6 = copy(dataA6);
         
         final List<Integer[]> dataC1 = copy(dataA1);
         final List<Integer[]> dataC2 = copy(dataA2);
         final List<Integer[]> dataC3 = copy(dataA3);
         final List<Integer[]> dataC4 = copy(dataA4);
         final List<Integer[]> dataC5 = copy(dataA5);
-        
-        System.out.println("Benchmark data prepared.");
+        final List<Integer[]> dataC6 = copy(dataA6);
         
         final List<Integer[]> dataD1 = copy(dataA1);
         final List<Integer[]> dataD2 = copy(dataA2);
         final List<Integer[]> dataD3 = copy(dataA3);
         final List<Integer[]> dataD4 = copy(dataA4);
         final List<Integer[]> dataD5 = copy(dataA5);
+        final List<Integer[]> dataD6 = copy(dataA6);
+        
+        System.out.println("Benchmark data prepared.");
         
         final NaturalMergesortBenchmarkRunnable runnableA1 = 
           new NaturalMergesortBenchmarkRunnable(dataA1);
@@ -58,6 +62,9 @@ final class ArraysBenchmark {
         final NaturalMergesortBenchmarkRunnable runnableA5 = 
           new NaturalMergesortBenchmarkRunnable(dataA5);
         
+        final NaturalMergesortBenchmarkRunnable runnableA6 = 
+          new NaturalMergesortBenchmarkRunnable(dataA6);
+        
         final NaturalMergesortV2BenchmarkRunnable runnableB1 = 
           new NaturalMergesortV2BenchmarkRunnable(dataB1);
         
@@ -72,6 +79,9 @@ final class ArraysBenchmark {
         
         final NaturalMergesortV2BenchmarkRunnable runnableB5 = 
           new NaturalMergesortV2BenchmarkRunnable(dataB5);
+        
+        final NaturalMergesortV2BenchmarkRunnable runnableB6 = 
+          new NaturalMergesortV2BenchmarkRunnable(dataB6);
         
         final ArraysSortBenchmarkRunnable runnableC1 = 
           new ArraysSortBenchmarkRunnable(dataC1);
@@ -88,6 +98,9 @@ final class ArraysBenchmark {
         final ArraysSortBenchmarkRunnable runnableC5 = 
           new ArraysSortBenchmarkRunnable(dataC5);
         
+        final ArraysSortBenchmarkRunnable runnableC6 = 
+          new ArraysSortBenchmarkRunnable(dataC6);
+        
         final PowersortBenchmarkRunnable runnableD1 = 
           new PowersortBenchmarkRunnable(dataD1);
         
@@ -102,6 +115,9 @@ final class ArraysBenchmark {
         
         final PowersortBenchmarkRunnable runnableD5 = 
           new PowersortBenchmarkRunnable(dataD5);
+        
+        final PowersortBenchmarkRunnable runnableD6 = 
+          new PowersortBenchmarkRunnable(dataD6);
         
         System.out.println(
         """
@@ -149,6 +165,13 @@ final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableD5, NUMBER_OF_ARRAYS));
         System.out.println();
         
+        System.out.println("--- Skewed data ---");
+        System.out.println(Runner.measure(runnableA6, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableB6, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableC6, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableD6, NUMBER_OF_ARRAYS));
+        System.out.println();
+        
         final boolean equal1 = arrayListsEqual(dataA1, dataB1);
         final boolean equal2 = arrayListsEqual(dataA2, dataB2);
         final boolean equal3 = arrayListsEqual(dataA3, dataB3);
@@ -158,8 +181,8 @@ final class ArraysBenchmark {
         final boolean equal7 = arrayListsEqual(dataA2, dataC2);
         final boolean equal8 = arrayListsEqual(dataA3, dataC3);
         final boolean equal9 = arrayListsEqual(dataA4, dataC4);
-        final boolean equalA = arrayListsEqual(dataA5, dataC5);
-        final boolean equalB = arrayListsEqual(dataA1, dataD1);
+        final boolean equal10 = arrayListsEqual(dataA5, dataC5);
+        final boolean equal11 = arrayListsEqual(dataA1, dataD1);
         final boolean equalC = arrayListsEqual(dataA2, dataD2);
         final boolean equalD = arrayListsEqual(dataA3, dataD3);
         final boolean equalE = arrayListsEqual(dataA4, dataD4);
@@ -174,8 +197,8 @@ final class ArraysBenchmark {
                                                      equal7 &&
                                                      equal8 &&
                                                      equal9 &&
-                                                     equalA &&
-                                                     equalB &&
+                                                     equal10 &&
+                                                     equal11 &&
                                                      equalC &&
                                                      equalD &&
                                                      equalE &&
@@ -234,7 +257,7 @@ final class ArraysBenchmark {
         return arrays;
     }
     
-    private static List<Integer[]> createBadTailArrays(final Random random) {
+    private static List<Integer[]> createBadTailArrays() {
         List<Integer[]> arrays = new ArrayList<>(NUMBER_OF_ARRAYS);
         
         for (int i = 0; i < NUMBER_OF_ARRAYS; ++i) {
@@ -249,6 +272,16 @@ final class ArraysBenchmark {
         
         for (int i = 0; i < NUMBER_OF_ARRAYS; ++i) {
             arrays.add(createZigZagArray());
+        }
+        
+        return arrays;
+    }
+    
+    private static List<Integer[]> createSkewedArrays(final Random random) {
+        List<Integer[]> arrays = new ArrayList<>(NUMBER_OF_ARRAYS);
+        
+        for (int i = 0; i < NUMBER_OF_ARRAYS; ++i) {
+            arrays.add(createSkewedArray(random));
         }
         
         return arrays;
@@ -319,6 +352,37 @@ final class ArraysBenchmark {
     
     private static Integer[] createZigZagArray() {
         final Integer[] array = new Integer[1_000_000];
+        
+        for (int i = 0; i < array.length; ++i) {
+            array[i] = i;
+        }
+        
+        for (int i = 0; i < array.length; i += 2) {
+            Integer tmp = array[i];
+            array[i] = array[i + 1];
+            array[i + 1] = tmp;
+        }
+        
+        return array;
+        
+    }
+    
+    private static Integer[] createSkewedArray(final Random random) {
+        final Integer[] array = new Integer[1_000_000];
+        
+        int index = 0;
+        
+        while (index < array.length) {
+            final int remaining = array.length - index;
+            int currentRunLength = (1 + random.nextInt(remaining)) / 57;
+            currentRunLength = Math.max(4, currentRunLength);
+            
+            for (int j = index; j < index + currentRunLength; ++j) {
+                array[j] = j - index;
+            }
+            
+            index += currentRunLength;
+        }
         
         for (int i = 0; i < array.length; ++i) {
             array[i] = i;
