@@ -10,7 +10,7 @@ import java.util.Random;
 
 final class ArraysBenchmark {
     
-    private static final int NUMBER_OF_ARRAYS = 10;
+    private static final int NUMBER_OF_ARRAYS = 15;
     
     public static void main(String[] args) {
         
@@ -144,12 +144,16 @@ final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableD2, NUMBER_OF_ARRAYS));
         System.out.println();
         
+        System.gc();
+        
         System.out.println("--- Presorted data ---");
         System.out.println(Runner.measure(runnableA3, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB3, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC3, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableD3, NUMBER_OF_ARRAYS));
         System.out.println();
+        
+        System.gc();
         
         System.out.println("--- Bad tail data ---");
         System.out.println(Runner.measure(runnableA4, NUMBER_OF_ARRAYS));
@@ -158,12 +162,16 @@ final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableD4, NUMBER_OF_ARRAYS));
         System.out.println();
         
+        System.gc();
+        
         System.out.println("--- Zig zag data ---");
         System.out.println(Runner.measure(runnableA5, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableB5, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC5, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableD5, NUMBER_OF_ARRAYS));
         System.out.println();
+        
+        System.gc();
         
         System.out.println("--- Skewed data ---");
         System.out.println(Runner.measure(runnableA6, NUMBER_OF_ARRAYS));

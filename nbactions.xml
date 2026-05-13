@@ -10,7 +10,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
             </goals>
             <properties>
-                <exec.vmArgs>-Xms3000m</exec.vmArgs>
+                <exec.vmArgs>-Xms3500m</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.appArgs></exec.appArgs>
                 <exec.mainClass>io.github.coderodde.util.benchmark.ArraysBenchmark</exec.mainClass>
@@ -27,7 +27,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
             </goals>
             <properties>
-                <exec.vmArgs>-Xms3000m -agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
+                <exec.vmArgs>-Xms3500m -agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.appArgs></exec.appArgs>
                 <exec.mainClass>io.github.coderodde.util.benchmark.ArraysBenchmark</exec.mainClass>
@@ -45,7 +45,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:3.5.1:exec</goal>
             </goals>
             <properties>
-                <exec.vmArgs>-Xms3000m</exec.vmArgs>
+                <exec.vmArgs>-Xms3500m</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.mainClass>io.github.coderodde.util.benchmark.ArraysBenchmark</exec.mainClass>
                 <exec.executable>java</exec.executable>

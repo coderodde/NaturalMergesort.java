@@ -889,69 +889,130 @@ public final class Arrays {
                                           final int fromIndex,
                                           final int toIndex,
                                           final Comparator<? super T> cmp) {
+            int indexLeft = fromIndex;
             
-            int indexLeft                    = fromIndex;
-            int indexRight                   = indexLeft + 1;
-            final int upperBoundIndexLeft    = toIndex - 1;
-            boolean previousRunWasDescending = false;
-            
-            while (indexLeft < upperBoundIndexLeft) {
+            while (indexLeft + 1 < toIndex) {
                 final int indexHead = indexLeft;
+                int indexRight = indexLeft + 1;
                 
                 if (cmp.compare(array[indexLeft], array[indexRight]) <= 0) {
-                    while (indexLeft < upperBoundIndexLeft && 
-                           cmp.compare(array[indexLeft], 
-                                       array[indexRight]) <= 0) {
-                        
+                    do {
                         ++indexLeft;
                         ++indexRight;
-                    }
+                    } while (indexRight < toIndex &&
+                             cmp.compare(array[indexLeft], 
+                                         array[indexRight]) <= 0);
                     
-                    
-                    if (previousRunWasDescending &&
-                        cmp.compare(array[indexHead - 1],
-                                    array[indexHead]) <= 0) {
-                        
-                        final int runLength = indexRight - indexHead;
-                        indexRight += runLength;
-                    } else {
-                        return indexRight;
-                    }
-                    
-                    previousRunWasDescending = false;
+//                    while (indexRight < toIndex &&
+//                           cmp.compare(array[indexRight - 1], 
+//                                       array[indexRight]) <= 0) {
+//                        
+//                        ++indexRight;
+//                    }
                 } else {
-                    while (indexLeft < upperBoundIndexLeft &&
-                           cmp.compare(array[indexLeft],
-                                       array[indexRight]) > 0) {
-                        
+                    do {
                         ++indexLeft;
                         ++indexRight;
-                    }
+                    } while (indexRight < toIndex &&
+                             cmp.compare(array[indexLeft], 
+                                         array[indexRight]) > 0);
                     
-                    reverseRun(array, 
-                               fromIndex,
+//                    while (indexRight < toIndex &&
+//                           cmp.compare(array[indexRight - 1],
+//                                       array[indexRight]) > 0) {
+//                        
+//                        ++indexRight;
+//                    }
+                    
+                    reverseRun(array,
+                               indexHead,
                                indexRight);
-                    
-                    
-                    if (previousRunWasDescending &&
-                        cmp.compare(array[indexHead - 1],
-                                    array[indexHead]) <= 0) {
-                        
-                        final int runLength = indexRight - indexHead;
-                        indexRight += runLength;
-                    } else {
-                        return indexRight;
-                    }
-                    
-                    previousRunWasDescending = true;
                 }
                 
-                ++indexLeft;
-                ++indexRight;
+                if (indexHead != fromIndex &&
+                    cmp.compare(array[indexHead - 1], array[indexHead]) > 0) {
+                    return indexHead;
+                }
+                
+                indexLeft = indexRight;
             }
             
+            if (indexLeft < toIndex && 
+                indexLeft != fromIndex &&
+                cmp.compare(array[indexLeft - 1], array[indexLeft]) > 0) {
+                
+                return indexLeft;
+            }
+        
             return toIndex;
         }
+//        
+//        private static <T> int firstRunOf(final T[] array,
+//                                          final int fromIndex,
+//                                          final int toIndex,
+//                                          final Comparator<? super T> cmp) {
+//            
+//            int indexLeft                    = fromIndex;
+//            int indexRight                   = indexLeft + 1;
+//            final int upperBoundIndexLeft    = toIndex - 1;
+//            boolean previousRunWasDescending = false;
+//            
+//            while (indexLeft < upperBoundIndexLeft) {
+//                final int indexHead = indexLeft;
+//                
+//                if (cmp.compare(array[indexLeft], array[indexRight]) <= 0) {
+//                    while (indexLeft < upperBoundIndexLeft && 
+//                           cmp.compare(array[indexLeft], 
+//                                       array[indexRight]) <= 0) {
+//                        
+//                        ++indexLeft;
+//                        ++indexRight;
+//                    }
+//                    
+//                    
+//                    if (previousRunWasDescending &&
+//                        cmp.compare(array[indexHead - 1],
+//                                    array[indexHead]) <= 0) {
+//                        
+//                        final int runLength = indexRight - indexHead;
+//                        indexRight += runLength;
+//                    } else {
+//                        return indexRight;
+//                    }
+//                    
+//                    previousRunWasDescending = false;
+//                } else {
+//                    while (indexLeft < upperBoundIndexLeft &&
+//                           cmp.compare(array[indexLeft],
+//                                       array[indexRight]) > 0) {
+//                        
+//                        ++indexLeft;
+//                        ++indexRight;
+//                    }
+//                    
+//                    reverseRun(array, 
+//                               indexHead,
+//                               indexRight);
+//                    
+//                    if (previousRunWasDescending &&
+//                        cmp.compare(array[indexHead - 1],
+//                                    array[indexHead]) <= 0) {
+//                        
+//                        final int runLength = indexRight - indexHead;
+//                        indexRight += runLength;
+//                    } else {
+//                        return indexRight;
+//                    }
+//                    
+//                    previousRunWasDescending = true;
+//                }
+//                
+//                ++indexLeft;
+//                ++indexRight;
+//            }
+//            
+//            return toIndex;
+//        }
     }
     
     /**
