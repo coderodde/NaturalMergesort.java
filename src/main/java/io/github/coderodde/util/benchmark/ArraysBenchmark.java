@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-final class ArraysBenchmark {
+public final class ArraysBenchmark {
     
     private static final int NUMBER_OF_ARRAYS = 15;
     

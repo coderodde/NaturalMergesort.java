@@ -754,6 +754,148 @@ public final class Arrays {
             
         }
         
+        private static <T> void fasterMerge(final T[] array,
+                                            final T[] buffer,
+                                            final int offset,
+                                            final int runLengthLeft,
+                                            final int runLengthRight,
+                                            final Comparator<? super T> cmp) {
+            
+        }
+        
+        private static <T> int gallopRight(final T key,
+                                           final T[] array,
+                                           final int base,
+                                           final int length,
+                                           final int hint,
+                                           final Comparator<? super T> cmp) {
+            
+            int ofs = 1;
+            int lastOfs = 0;
+            
+            if (cmp.compare(key, array[base + hint]) < 0) {
+                int maxOfs = hint + 1;
+                
+                while (ofs < maxOfs && 
+                       cmp.compare(key, array[base + hint - ofs]) < 0) {
+                    
+                    lastOfs = ofs;
+                    ofs = (ofs << 1) + 1;
+                    
+                    if (ofs <= 0) {
+                        ofs = maxOfs;
+                    }
+                }
+                
+                if (ofs > maxOfs) {
+                    ofs = maxOfs;
+                }
+                
+                int tmp = lastOfs;
+                lastOfs = hint - ofs;
+                ofs = hint - tmp;
+            } else {
+                int maxOfs = length - hint;
+                
+                while (ofs < maxOfs && 
+                       cmp.compare(key, array[base + hint + ofs]) >= 0) {
+                    
+                    lastOfs = ofs;
+                    ofs = (ofs << 1) + 1;
+                    
+                    if (ofs <= 0) {
+                        ofs = maxOfs;
+                    }
+                }
+                
+                if (ofs > maxOfs) {
+                    ofs = maxOfs;
+                }
+                
+                lastOfs += hint;
+                ofs     += hint;
+            }
+            
+            ++lastOfs;
+            
+            while (lastOfs < ofs) {
+                final int m = lastOfs + ((ofs - lastOfs) >>> 1);
+                
+                if (cmp.compare(key, array[base + m]) < 0) {
+                    ofs = m;
+                } else {
+                    lastOfs = m + 1;
+                }
+            }
+            
+            return ofs;
+        }
+        
+        private static <T> int gallopLeft(final T key,
+                                          final T[] array,
+                                          final int base,
+                                          final int length,
+                                          final int hint,
+                                          final Comparator<? super T> cmp) {
+            int lastOfs = 0;
+            int ofs = 1;
+            
+            if (cmp.compare(key, array[base + hint]) > 0) {
+                final int maxOfs = length - hint;
+                
+                while (ofs < maxOfs &&
+                       cmp.compare(key, array[base + hint + ofs]) > 0) {
+                    lastOfs = ofs;
+                    ofs = (ofs << 1) + 1;
+                    
+                    if (ofs <= 0) {
+                        ofs = maxOfs;
+                    }
+                }
+                
+                if (ofs > maxOfs) {
+                    ofs = maxOfs;
+                }
+                
+                lastOfs += hint;
+                ofs     += hint;
+            } else {
+                final int maxOfs = hint + 1;
+                
+                while (ofs < maxOfs &&
+                       cmp.compare(key, array[base + hint - ofs]) <= 0) {
+                    lastOfs = ofs;
+                    ofs = (ofs << 1) + 1;
+                    
+                    if (ofs <= 0) {
+                        ofs = maxOfs;
+                    }
+                }
+                
+                if (ofs > maxOfs) {
+                    ofs = maxOfs;
+                }
+                
+                final int tmp = lastOfs;
+                lastOfs = hint - ofs;
+                ofs = hint - tmp;
+            }
+            
+            ++lastOfs;
+            
+            while (lastOfs < ofs) {
+                final int m = lastOfs + ((ofs - lastOfs) >>> 1);
+                
+                if (cmp.compare(key, array[base + m]) > 0) {
+                    lastOfs = m + 1;
+                } else {
+                    ofs = m;
+                }
+            }
+            
+            return ofs;
+        }
+        
         private static <T> void merge(final T[] array,
                                       final T[] buffer,
                                       final int offset,
@@ -925,7 +1067,8 @@ public final class Arrays {
             
             if (indexLeft < toIndex && 
                 indexLeft != fromIndex &&
-                cmp.compare(array[indexLeft - 1], array[indexLeft]) > 0) {
+                cmp.compare(array[indexLeft - 1],
+                            array[indexLeft]) > 0) {
                 
                 return indexLeft;
             }
