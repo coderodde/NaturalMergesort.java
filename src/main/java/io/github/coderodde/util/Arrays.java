@@ -720,12 +720,12 @@ public final class Arrays {
                     final int runLengthLeft  = entry.runLength;
                     final int runLengthRight = e1 - b1;
 
-                    merge(array, 
-                          buffer, 
-                          offset,
-                          runLengthLeft, 
-                          runLengthRight,
-                          cmp);
+//                    merge(array, 
+//                          buffer, 
+//                          offset,
+//                          runLengthLeft, 
+//                          runLengthRight,
+//                          cmp);
 
                     b1 = offset;
                     e1 = offset + runLengthLeft + runLengthRight;
@@ -742,12 +742,17 @@ public final class Arrays {
                 final int runLengthLeft  = entry.runLength;
                 final int runLengthRight = e1 - b1;
                 
-                merge(array, 
-                      buffer, 
-                      offset,
-                      runLengthLeft, 
-                      runLengthRight,
-                      cmp);
+//                merge(source,
+//                      target,
+//                      offset,
+//                      )
+//                
+//                merge(array, 
+//                      buffer, 
+//                      offset,
+//                      runLengthLeft, 
+//                      runLengthRight,
+//                      cmp);
                 
                 b1 = offset;
                 e1 = offset + runLengthLeft + runLengthRight;
@@ -925,6 +930,10 @@ public final class Arrays {
                                  length2 - 1, 
                                  cmp);
             
+            if (length2 == 0) {
+                return;
+            }
+            
             if (length1 <= length2) {
                 mergeLo(source,
                         target,
@@ -1057,21 +1066,24 @@ public final class Arrays {
             
             this.minimumGallop = minimumGallop < 1 ? 1 : minimumGallop;
             
-            if (length2 == 1) {
-                destination -= length1;
-                cursor1 -= length1;
-                
-                System.arraycopy(source,
-                                 cursor1 + 1, 
-                                 target, 
-                                 destination + 1, 
-                                 length1);
-            } else if (length2 == 0) {
-                throw new IllegalArgumentException(
-                    "Comparison method violates its general contract!");
-            }
+            System.arraycopy(source, cursor1, target, destination, length1);
+            System.arraycopy(source, cursor2, target, destination, length2);
+//            if (length2 == 1) {
+//                destination -= length1;
+//                cursor1 -= length1;
+//                
+//                System.arraycopy(source,
+//                                 cursor1 + 1, 
+//                                 target, 
+//                                 destination + 1, 
+//                                 length1);
+//            } else if (length2 == 0) {
+//                throw new IllegalArgumentException(
+//                    "Comparison method violates its general contract!");
+//            }
         }
         
+        // TODO: Under work.
         private void mergeLo(final T[] source,
                              final T[] target,
                              final int targetOffset,
@@ -1084,7 +1096,30 @@ public final class Arrays {
             int cursor1 = base1;
             int cursor2 = base2;
             int destination = targetOffset;
-            int minimumGallop = this.minimumGallop;
+            
+            target[destination++] = source[cursor2++];
+            
+            if (--length2 == 0) {
+                System.arraycopy(source, 
+                                 cursor1,
+                                 target, 
+                                 targetOffset,
+                                 length1);
+                return;
+            }
+            
+            if (length1 == 1) {
+                System.arraycopy(source, 
+                                 cursor2, 
+                                 target, 
+                                 targetOffset + length1,
+                                 length2);
+                
+                target[destination + length2] = source[cursor1];
+                return;
+            }
+            
+            int minGallop = this.minimumGallop;
             
             outer:
             while (true) {
@@ -1109,7 +1144,7 @@ public final class Arrays {
                             break outer;
                         }
                     }
-                } while ((count1 | count2) < minimumGallop);
+                } while ((count1 | count2) < minGallop);
                 
                 do {
                     count1 = gallopRight(source[cursor2],
@@ -1170,87 +1205,91 @@ public final class Arrays {
                         break outer;
                     }
 
-                    --minimumGallop;
-            } while (count1 >= MINIMUM_GALLOP || count2 >= MINIMUM_GALLOP);
+                    --minGallop;
+            } while (count1 >= MINIMUM_GALLOP | count2 >= MINIMUM_GALLOP);
             
-            if (minimumGallop < 0) {
-                minimumGallop = 0;
+            if (minGallop < 0) {
+                minGallop = 0;
             }
             
-            minimumGallop += 2;
+            minGallop += 2;
         }
             
-            this.minimumGallop = minimumGallop < 1 ? 1 : minimumGallop;
-        }
+        this.minimumGallop = minGallop < 1 ? 1 : minGallop;
         
-        private static <T> void merge(final T[] array,
-                                      final T[] buffer,
-                                      final int offset,
-                                      final int runLengthLeft,
-                                      final int runLengthRight,
-                                      final Comparator<? super T> cmp) {
-            if (runLengthLeft <= runLengthRight) {
-                // Once here, the left run is copied to the buffer:
-                System.arraycopy(array,
-                                 offset, 
-                                 buffer,
-                                 0, 
-                                 runLengthLeft);
-                
-                int indexLeft  = 0;
-                int indexRight = offset + runLengthLeft;
-                int indexArray = offset;
-                
-                final int indexBoundLeft  = runLengthLeft;
-                final int indexBoundRight = offset 
-                                          + runLengthLeft
-                                          + runLengthRight;
-                
-                while (indexLeft  != indexBoundLeft &&
-                       indexRight != indexBoundRight) {
-                    
-                    array[indexArray++] = 
-                            cmp.compare(buffer[indexLeft],
-                                        array[indexRight]) <= 0 ?
-                            buffer[indexLeft++] :
-                            array[indexRight++];
-                }
-                
-                System.arraycopy(buffer,
-                                 indexLeft, 
-                                 array, 
-                                 indexArray, 
-                                 indexBoundLeft - indexLeft);
-            } else {
-                // Once here, the right run is copied to the buffer:
-                System.arraycopy(array,
-                                 offset + runLengthLeft, 
-                                 buffer,
-                                 0, 
-                                 runLengthRight);
-                
-                int indexLeft  = offset + runLengthLeft - 1;
-                int indexRight = runLengthRight - 1;
-                int indexArray = offset + runLengthLeft + runLengthRight - 1;
-                
-                final int indexBoundLeft  = offset;
-                
-                while (indexLeft  >= indexBoundLeft && indexRight >= 0) {
-                    
-                    array[indexArray--] = 
-                            cmp.compare(array[indexLeft], 
-                                        buffer[indexRight]) > 0 ?
-                            array[indexLeft--] :
-                            buffer[indexRight--];
-                } 
-                
-                System.arraycopy(buffer, 
-                                 0, 
-                                 array, 
-                                 offset, 
-                                 indexRight + 1);
-            }
-        }
+        System.arraycopy(source, cursor1, target, destination, length1);
+        System.arraycopy(source, cursor2, target, destination, length2);
+    }
+//        
+//    private static <T> void merge(final T[] array,
+//                                  final T[] buffer,
+//                                  final int offset,
+//                                  final int runLengthLeft,
+//                                  final int runLengthRight,
+//                                  final Comparator<? super T> cmp) {
+//        
+//            if (runLengthLeft <= runLengthRight) {
+//                // Once here, the left run is copied to the buffer:
+//                System.arraycopy(array,
+//                                 offset, 
+//                                 buffer,
+//                                 0, 
+//                                 runLengthLeft);
+//                
+//                int indexLeft  = 0;
+//                int indexRight = offset + runLengthLeft;
+//                int indexArray = offset;
+//                
+//                final int indexBoundLeft  = runLengthLeft;
+//                final int indexBoundRight = offset 
+//                                          + runLengthLeft
+//                                          + runLengthRight;
+//                
+//                while (indexLeft  != indexBoundLeft &&
+//                       indexRight != indexBoundRight) {
+//                    
+//                    array[indexArray++] = 
+//                            cmp.compare(buffer[indexLeft],
+//                                        array[indexRight]) <= 0 ?
+//                            buffer[indexLeft++] :
+//                            array[indexRight++];
+//                }
+//                
+//                System.arraycopy(buffer,
+//                                 indexLeft, 
+//                                 array, 
+//                                 indexArray, 
+//                                 indexBoundLeft - indexLeft);
+//            } else {
+//                // Once here, the right run is copied to the buffer:
+//                System.arraycopy(array,
+//                                 offset + runLengthLeft, 
+//                                 buffer,
+//                                 0, 
+//                                 runLengthRight);
+//                
+//                int indexLeft  = offset + runLengthLeft - 1;
+//                int indexRight = runLengthRight - 1;
+//                int indexArray = offset + runLengthLeft + runLengthRight - 1;
+//                
+//                final int indexBoundLeft  = offset;
+//                
+//                while (indexLeft  >= indexBoundLeft && indexRight >= 0) {
+//                    
+//                    array[indexArray--] = 
+//                            cmp.compare(array[indexLeft], 
+//                                        buffer[indexRight]) > 0 ?
+//                            array[indexLeft--] :
+//                            buffer[indexRight--];
+//                } 
+//                
+//                System.arraycopy(buffer, 
+//                                 0, 
+//                                 array, 
+//                                 offset, 
+//                                 indexRight + 1);
+//            }
+//        }
         
         static final class RunStack {
             
