@@ -666,7 +666,11 @@ public final class Arrays {
         }
     }
 
-    public static final class Powersort {
+    public static final class Powersort<T> {
+        
+        private static final int MINIMUM_GALLOP = 7;
+        
+        private int minimumGallop = MINIMUM_GALLOP;
         
         public static <T> void sort(final T[] array,
                                     final Comparator<? super T> cmp) {
@@ -754,83 +758,6 @@ public final class Arrays {
             
         }
         
-        private static <T> void fasterMerge(final T[] array,
-                                            final T[] buffer,
-                                            final int offset,
-                                            final int runLengthLeft,
-                                            final int runLengthRight,
-                                            final Comparator<? super T> cmp) {
-            
-        }
-        
-        private static <T> int gallopRight(final T key,
-                                           final T[] array,
-                                           final int base,
-                                           final int length,
-                                           final int hint,
-                                           final Comparator<? super T> cmp) {
-            
-            int ofs = 1;
-            int lastOfs = 0;
-            
-            if (cmp.compare(key, array[base + hint]) < 0) {
-                int maxOfs = hint + 1;
-                
-                while (ofs < maxOfs && 
-                       cmp.compare(key, array[base + hint - ofs]) < 0) {
-                    
-                    lastOfs = ofs;
-                    ofs = (ofs << 1) + 1;
-                    
-                    if (ofs <= 0) {
-                        ofs = maxOfs;
-                    }
-                }
-                
-                if (ofs > maxOfs) {
-                    ofs = maxOfs;
-                }
-                
-                int tmp = lastOfs;
-                lastOfs = hint - ofs;
-                ofs = hint - tmp;
-            } else {
-                int maxOfs = length - hint;
-                
-                while (ofs < maxOfs && 
-                       cmp.compare(key, array[base + hint + ofs]) >= 0) {
-                    
-                    lastOfs = ofs;
-                    ofs = (ofs << 1) + 1;
-                    
-                    if (ofs <= 0) {
-                        ofs = maxOfs;
-                    }
-                }
-                
-                if (ofs > maxOfs) {
-                    ofs = maxOfs;
-                }
-                
-                lastOfs += hint;
-                ofs     += hint;
-            }
-            
-            ++lastOfs;
-            
-            while (lastOfs < ofs) {
-                final int m = lastOfs + ((ofs - lastOfs) >>> 1);
-                
-                if (cmp.compare(key, array[base + m]) < 0) {
-                    ofs = m;
-                } else {
-                    lastOfs = m + 1;
-                }
-            }
-            
-            return ofs;
-        }
-        
         private static <T> int gallopLeft(final T key,
                                           final T[] array,
                                           final int base,
@@ -894,6 +821,366 @@ public final class Arrays {
             }
             
             return ofs;
+        }
+        
+        private static <T> int gallopRight(final T key,
+                                           final T[] array,
+                                           final int base,
+                                           final int length,
+                                           final int hint,
+                                           final Comparator<? super T> cmp) {
+            
+            int ofs = 1;
+            int lastOfs = 0;
+            
+            if (cmp.compare(key, array[base + hint]) < 0) {
+                final int maxOfs = hint + 1;
+                
+                while (ofs < maxOfs && 
+                       cmp.compare(key, array[base + hint - ofs]) < 0) {
+                    
+                    lastOfs = ofs;
+                    ofs = (ofs << 1) + 1;
+                    
+                    if (ofs <= 0) {
+                        ofs = maxOfs;
+                    }
+                }
+                
+                if (ofs > maxOfs) {
+                    ofs = maxOfs;
+                }
+                
+                int tmp = lastOfs;
+                lastOfs = hint - ofs;
+                ofs = hint - tmp;
+            } else {
+                final int maxOfs = length - hint;
+                
+                while (ofs < maxOfs && 
+                       cmp.compare(key, array[base + hint + ofs]) >= 0) {
+                    
+                    lastOfs = ofs;
+                    ofs = (ofs << 1) + 1;
+                    
+                    if (ofs <= 0) {
+                        ofs = maxOfs;
+                    }
+                }
+                
+                if (ofs > maxOfs) {
+                    ofs = maxOfs;
+                }
+                
+                lastOfs += hint;
+                ofs     += hint;
+            }
+            
+            ++lastOfs;
+            
+            while (lastOfs < ofs) {
+                final int m = lastOfs + ((ofs - lastOfs) >>> 1);
+                
+                if (cmp.compare(key, array[base + m]) < 0) {
+                    ofs = m;
+                } else {
+                    lastOfs = m + 1;
+                }
+            }
+            
+            return ofs;
+        }
+        
+        private void merge(final T[] source,
+                           final T[] target,
+                           final int sourceOffset,
+                           final int targetOffset,
+                           final int runLengthLeft,
+                           final int runLengthRight,
+                           final Comparator<? super T> cmp) {
+            
+            int base1 = sourceOffset;
+            int base2 = sourceOffset + runLengthLeft;
+            int length1 = runLengthLeft;
+            int length2 = runLengthRight;
+            
+            final int k = gallopRight(source[base2], 
+                                      source, 
+                                      base1, 
+                                      length1, 
+                                      0, 
+                                      cmp);
+            
+            base1 += k;
+            length1 -= k;
+            
+            if (length1 == 0) {
+                return;
+            }
+            
+            length2 = gallopLeft(source[base1 + length1 - 1],
+                                 source, 
+                                 base2, 
+                                 length2, 
+                                 length2 - 1, 
+                                 cmp);
+            
+            if (length1 <= length2) {
+                mergeLo(source,
+                        target,
+                        targetOffset,
+                        base1,
+                        length1,
+                        base2,
+                        length2,
+                        cmp);
+            } else {
+                mergeHi(source,
+                        target,
+                        targetOffset,
+                        base1,
+                        length1,
+                        base2,
+                        length2,
+                        cmp);
+            }
+        }
+        
+        private void mergeHi(final T[] source,
+                             final T[] target,
+                             final int targetOffset,
+                             final int base1,
+                             int length1,
+                             final int base2,
+                             int length2,
+                             final Comparator<? super T> cmp) {
+            int cursor1 = base1 + length1 - 1;
+            int cursor2 = base2 + length2 - 1;
+            int destination = targetOffset 
+                            + base2 
+                            + length2 
+                            - 1;
+            
+            int minimumGallop = this.minimumGallop;
+            
+            outer:
+            while (true) {
+                int count1 = 0;
+                int count2 = 0;
+                
+                do {
+                    if (cmp.compare(source[cursor2], source[cursor1]) < 0) {
+                        target[destination--] = source[cursor1--];
+                        count1++;
+                        count2 = 0;
+                        
+                        if (--length1 == 0) {
+                            break outer;
+                        }
+                    } else {
+                        target[destination--] = source[cursor2--];
+                        count2++;
+                        count1 = 0;
+                        
+                        if (--length2 == 1) {
+                            break outer;
+                        }
+                    }
+                } while ((count1 | count2) < minimumGallop);
+                
+                do {
+                    count1 = length1 
+                           - gallopRight(source[cursor2],
+                                         source, 
+                                         base1, 
+                                         length1,
+                                         length1 - 1, 
+                                         cmp);
+                    
+                    if (count1 != 0) {
+                        destination -= count1;
+                        cursor1 -= count1;
+                        length1 -= count1;
+                        
+                        System.arraycopy(source, 
+                                         cursor1 + 1,
+                                         target,
+                                         destination + 1,
+                                         count1);
+                        
+                        if (length1 == 0) {
+                            break outer;
+                        }
+                    }
+                    
+                    target[destination--] = source[cursor2--];
+                    
+                    count2 = length2 - gallopLeft(source[cursor1],
+                                                  source,
+                                                  base2,
+                                                  length2,
+                                                  length2 - 1,
+                                                  cmp);
+                    
+                    if (count2 != 0) {
+                        destination -= count2;
+                        cursor2 -= count2;
+                        length2 -= count2;
+                        
+                        System.arraycopy(source,
+                                         cursor2 + 1, 
+                                         target,
+                                         destination + 1, 
+                                         count2);
+                        
+                        if (length2 <= 1) {
+                            break outer;
+                        }
+                    }
+                    
+                    target[destination--] = source[cursor1--];
+                    
+                    if (--length1 == 0) {
+                        break outer;
+                    }
+                    
+                    --minimumGallop;
+                } while (count1 >= MINIMUM_GALLOP || count2 >= MINIMUM_GALLOP);
+                
+                if (minimumGallop < 0) {
+                    minimumGallop = 0;
+                }
+                
+                minimumGallop += 2;
+                
+            }
+            
+            this.minimumGallop = minimumGallop < 1 ? 1 : minimumGallop;
+            
+            if (length2 == 1) {
+                destination -= length1;
+                cursor1 -= length1;
+                
+                System.arraycopy(source,
+                                 cursor1 + 1, 
+                                 target, 
+                                 destination + 1, 
+                                 length1);
+            } else if (length2 == 0) {
+                throw new IllegalArgumentException(
+                    "Comparison method violates its general contract!");
+            }
+        }
+        
+        private void mergeLo(final T[] source,
+                             final T[] target,
+                             final int targetOffset,
+                             final int base1,
+                             int length1,
+                             final int base2,
+                             int length2,
+                             final Comparator<? super T> cmp) {
+            
+            int cursor1 = base1;
+            int cursor2 = base2;
+            int destination = targetOffset;
+            int minimumGallop = this.minimumGallop;
+            
+            outer:
+            while (true) {
+                int count1 = 0;
+                int count2 = 0;
+                
+                do {
+                    if (cmp.compare(source[cursor2], source[cursor1]) < 0) {
+                        target[destination++] = source[cursor2++];
+                        count2++;
+                        count1 = 0;
+                        
+                        if (--length2 == 0) {
+                            break outer;
+                        }
+                    } else {
+                        target[destination++] = source[cursor1++];
+                        count1++;
+                        count2 = 0;
+                        
+                        if (--length1 == 0) {
+                            break outer;
+                        }
+                    }
+                } while ((count1 | count2) < minimumGallop);
+                
+                do {
+                    count1 = gallopRight(source[cursor2],
+                                         source,
+                                         cursor1, 
+                                         length1, 
+                                         0, 
+                                         cmp);
+
+                    if (count1 != 0) {
+                        System.arraycopy(source,
+                                         cursor1, 
+                                         target, 
+                                         destination,
+                                         count1);
+
+                        destination += count1;
+                        cursor1 += count1;
+                        length1 -= count1;
+
+                        if (length1 <= 1) {
+                            break outer;
+                        }
+                    }
+
+                    target[destination++] = source[cursor2++];
+
+                    if (--length2 == 0) {
+                        break outer;
+                    }
+
+                    count2 = gallopLeft(source[cursor1],
+                                        source,
+                                        cursor2,
+                                        length2,
+                                        0,
+                                        cmp);
+
+                    if (count2 != 0) {
+                        System.arraycopy(source, 
+                                         cursor2, 
+                                         target, 
+                                         destination,
+                                         count2);
+
+                        destination += count2;
+                        cursor2 += count2;
+                        length2 -= count2;
+
+                        if (length2 == 0) {
+                            break outer;
+                        }
+                    }
+
+                    target[destination++] = source[cursor1++];
+
+                    if (--length1 == 1) {
+                        break outer;
+                    }
+
+                    --minimumGallop;
+            } while (count1 >= MINIMUM_GALLOP || count2 >= MINIMUM_GALLOP);
+            
+            if (minimumGallop < 0) {
+                minimumGallop = 0;
+            }
+            
+            minimumGallop += 2;
+        }
+            
+            this.minimumGallop = minimumGallop < 1 ? 1 : minimumGallop;
         }
         
         private static <T> void merge(final T[] array,
