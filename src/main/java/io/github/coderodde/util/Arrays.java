@@ -678,10 +678,11 @@ public final class Arrays {
             new Powersort<T>().sort(array, 0, array.length, cmp);
         }
         
-        private void sort(final T[] array,
-                                    final int fromIndex,
-                                    final int toIndex,
-                                    final Comparator<? super T> cmp) {
+        public static <T> void sort(final T[] array,
+                         final int fromIndex,
+                         final int toIndex,
+                         final Comparator<? super T> cmp) {
+            
             Objects.requireNonNull(array, "The input array is null.");
             checkIndices(fromIndex, toIndex, array.length);
             Objects.requireNonNull(cmp, "The comparator is null.");
@@ -692,6 +693,7 @@ public final class Arrays {
                 return;
             }
             
+            final Powersort<T> powersort = new Powersort<>();
             final T[] buffer = (T[])  new Object[rangeLength / 2];
             final RunStack runStack = new RunStack(rangeLength);
             
@@ -720,12 +722,12 @@ public final class Arrays {
                     final int runLengthLeft  = entry.runLength;
                     final int runLengthRight = e1 - b1;
 
-                    merge(array, 
-                          buffer, 
-                          offset,
-                          runLengthLeft, 
-                          runLengthRight,
-                          cmp);
+                    powersort.merge(array, 
+                                    buffer, 
+                                    offset,
+                                    runLengthLeft, 
+                                    runLengthRight,
+                                    cmp);
 
                     b1 = offset;
                     e1 = offset + runLengthLeft + runLengthRight;
@@ -742,12 +744,12 @@ public final class Arrays {
                 final int runLengthLeft  = entry.runLength;
                 final int runLengthRight = e1 - b1;
                 
-                merge(array,
-                      buffer, 
-                      offset, 
-                      runLengthLeft, 
-                      runLengthRight, 
-                      cmp);
+                powersort.merge(array,
+                                buffer, 
+                                offset, 
+                                runLengthLeft, 
+                                runLengthRight, 
+                                cmp);
                 
                 b1 = offset;
                 e1 = offset + runLengthLeft + runLengthRight;
@@ -931,7 +933,7 @@ public final class Arrays {
             if (length1 <= length2) {
                 mergeLo(array,
                         buffer,
-                        0,
+                        base1,
                         length1,
                         base2,
                         length2,
@@ -941,7 +943,7 @@ public final class Arrays {
                         buffer,
                         base1,
                         length1,
-                        0,
+                        base2,
                         length2,
                         cmp);
             }
@@ -1002,7 +1004,7 @@ public final class Arrays {
                 // Do the straightforoward thing until (if ever) one run appears
                 // to win consistently.
                 do {
-                    if (cmp.compare(array[cursor2], array[cursor1]) < 0) {
+                    if (cmp.compare(buffer[cursor2], array[cursor1]) < 0) {
                         array[destination--] = array[cursor1--];
                         count1++;
                         count2 = 0;
@@ -1105,6 +1107,8 @@ public final class Arrays {
                                  array, 
                                  destination + 1, 
                                  length1);
+                
+                array[destination] = buffer[cursor2];
             } else if (length2 == 0) {
                 throw new IllegalArgumentException(
                     "Comparison method violates its general contract!");
@@ -1125,7 +1129,7 @@ public final class Arrays {
                              int length2,
                              final Comparator<? super T> cmp) {
             
-            int cursor1 = base1;
+            int cursor1 = 0;
             int cursor2 = base2;
             int destination = base1;
             
@@ -1133,7 +1137,7 @@ public final class Arrays {
             System.arraycopy(array,
                              base1, 
                              buffer, 
-                             cursor2, 
+                             cursor1, 
                              length1);
             
             array[destination++] = array[cursor2++];
@@ -1263,23 +1267,26 @@ public final class Arrays {
             
         this.minimumGallop = minGallop < 1 ? 1 : minGallop;
         
-        if (length1 == 1) {
-            System.arraycopy(array,
-                             cursor2, 
-                             array, 
-                             destination, 
-                             length2);
-            
-            array[destination + length2] = buffer[cursor1];
-        } else if (length1 == 0) {
-            throw new IllegalArgumentException(
-                "Comparison method violates its general contract!");
-        } else {
-            System.arraycopy(buffer, 
-                             cursor1, 
-                             array,
-                             destination, 
-                             length1);
+        switch (length1) {
+            case 1:
+                System.arraycopy(array,
+                                 cursor2,
+                                 array,
+                                 destination,
+                                 length2);
+                
+                array[destination + length2] = buffer[cursor1];
+                break;
+                
+            case 0:
+                throw new IllegalArgumentException(
+                        "Comparison method violates its general contract!");
+            default:
+                System.arraycopy(buffer,
+                                 cursor1,
+                                 array,
+                                 destination,
+                                 length1);
         }
     }
         
