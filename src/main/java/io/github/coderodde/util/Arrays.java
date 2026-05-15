@@ -1,6 +1,5 @@
 package io.github.coderodde.util;
 
-import io.github.coderodde.util.Arrays.Powersort.RunStack.RunStackEntry;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -672,16 +671,21 @@ public final class Arrays {
         
         private int minimumGallop = MINIMUM_GALLOP;
         
+        private final int[] runOffsets;
+        private final int[] runLengths;
+        private final int[] runPowers;
+        private int stackSize;
+        
         public static <T> void sort(final T[] array,
                                     final Comparator<? super T> cmp) {
             Objects.requireNonNull(array, "The input array is null.");
-            new Powersort<T>().sort(array, 0, array.length, cmp);
+            sort(array, 0, array.length, cmp);
         }
         
         public static <T> void sort(final T[] array,
-                         final int fromIndex,
-                         final int toIndex,
-                         final Comparator<? super T> cmp) {
+                                    final int fromIndex,
+                                    final int toIndex,
+                                    final Comparator<? super T> cmp) {
             
             Objects.requireNonNull(array, "The input array is null.");
             checkIndices(fromIndex, toIndex, array.length);
@@ -693,9 +697,8 @@ public final class Arrays {
                 return;
             }
             
-            final Powersort<T> powersort = new Powersort<>();
+            final Powersort<T> powersort = new Powersort<>(rangeLength);
             final T[] buffer = (T[])  new Object[rangeLength / 2];
-            final RunStack runStack = new RunStack(rangeLength);
             
             int b1 = fromIndex;
             int e1 = firstRunOf(array, 
@@ -716,11 +719,14 @@ public final class Arrays {
                                             b2 - fromIndex, 
                                             e2 - fromIndex);
                 
-                while (!runStack.isEmpty() && runStack.top().runPower > power) {
-                    final RunStackEntry entry = runStack.pop();
-                    final int offset = entry.runOffset;
-                    final int runLengthLeft  = entry.runLength;
+                while (!powersort.runStackIsEmpty() && 
+                        powersort.topPower() > power) {
+                    
+                    final int offset         = powersort.topOffset();
+                    final int runLengthLeft  = powersort.topLength();
                     final int runLengthRight = e1 - b1;
+                    
+                    powersort.pop();
 
                     powersort.merge(array, 
                                     buffer, 
@@ -733,16 +739,18 @@ public final class Arrays {
                     e1 = offset + runLengthLeft + runLengthRight;
                 }
                 
-                runStack.push(b1, e1 - b1, power);
+                powersort.push(b1, e1 - b1, power);
                 b1 = b2;
                 e1 = e2;
             }
             
-            while (!runStack.isEmpty()) {
-                final RunStackEntry entry = runStack.pop();
-                final int offset         = entry.runOffset;
-                final int runLengthLeft  = entry.runLength;
+            while (!powersort.runStackIsEmpty()) {
+                
+                final int offset         = powersort.topOffset();
+                final int runLengthLeft  = powersort.topLength();
                 final int runLengthRight = e1 - b1;
+                
+                powersort.pop();
                 
                 powersort.merge(array,
                                 buffer, 
@@ -756,8 +764,43 @@ public final class Arrays {
             }
         }
         
-        private Powersort() {
+        private Powersort(final int n) {
             
+            final int stackCapacity = 1 + (int) Math.ceil(Math.log(n) / 
+                                                          Math.log(2.0));
+
+            this.runOffsets = new int[stackCapacity];
+            this.runLengths = new int[stackCapacity];
+            this.runPowers  = new int[stackCapacity];
+        }
+        
+        private boolean runStackIsEmpty() {
+            return stackSize == 0;
+        }
+        
+        private int topPower() {
+            return runPowers[stackSize - 1];
+        }
+        
+        private int topOffset() {
+            return runOffsets[stackSize - 1];
+        }
+        
+        private int topLength() {
+            return runLengths[stackSize - 1];
+        }
+        
+        private void pop() {
+            --stackSize;
+        }
+        
+        private void push(final int offset,
+                          final int length,
+                          final int power) {
+            runOffsets[stackSize] = offset;
+            runLengths[stackSize] = length;
+            runPowers [stackSize] = power;
+            ++stackSize;
         }
         
         private static <T> int gallopLeft(final T key,
@@ -1287,54 +1330,6 @@ public final class Arrays {
                                  array,
                                  destination,
                                  length1);
-        }
-    }
-        
-    static final class RunStack {
-
-        final static class RunStackEntry {
-            int runOffset;
-            int runLength;
-            int runPower;
-
-            RunStackEntry(final int runOffset,
-                          final int runLength,
-                          final int runPower) {
-                this.runOffset = runOffset;
-                this.runLength = runLength;
-                this.runPower  = runPower;
-            }
-        }
-
-        private final RunStackEntry[] stackData;
-        private int size;
-
-        RunStack(final int n) {
-            final int stackDataCapacity = 1 
-                                        + (int) Math.ceil(Math.log(n) / 
-                                                          Math.log(2.0));
-
-            this.stackData = new RunStackEntry[stackDataCapacity];
-        }
-
-        boolean isEmpty() {
-            return size == 0;
-        }
-
-        void push(final int runOffset,
-                  final int runLength,
-                  final int runPower) {
-            stackData[size++] = new RunStackEntry(runOffset,
-                                                  runLength,
-                                                  runPower);
-        }
-
-        RunStackEntry pop() {
-            return stackData[--size];
-        }
-
-        RunStackEntry top() {
-            return stackData[size - 1];
         }
     }
         

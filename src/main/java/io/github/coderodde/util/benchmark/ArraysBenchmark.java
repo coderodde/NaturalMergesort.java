@@ -124,7 +124,7 @@ public final class ArraysBenchmark {
         *********************************************************************
         * After each title --- Title ---, the first row is for the          *
         * NaturalMergesort.sort, the second row is for the                  *
-        * NaturalMergesort.sort iwth presorting, the third row is for the   *
+        * NaturalMergesort.sort with presorting, the third row is for the   *
         * Arrays.sort, and the fourth row is for the Powersort.sort.        *
         *********************************************************************
         """
