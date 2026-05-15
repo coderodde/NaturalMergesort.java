@@ -675,10 +675,10 @@ public final class Arrays {
         public static <T> void sort(final T[] array,
                                     final Comparator<? super T> cmp) {
             Objects.requireNonNull(array, "The input array is null.");
-            sort(array, 0, array.length, cmp);
+            new Powersort<T>().sort(array, 0, array.length, cmp);
         }
         
-        public static <T> void sort(final T[] array,
+        private void sort(final T[] array,
                                     final int fromIndex,
                                     final int toIndex,
                                     final Comparator<? super T> cmp) {
@@ -720,12 +720,12 @@ public final class Arrays {
                     final int runLengthLeft  = entry.runLength;
                     final int runLengthRight = e1 - b1;
 
-//                    merge(array, 
-//                          buffer, 
-//                          offset,
-//                          runLengthLeft, 
-//                          runLengthRight,
-//                          cmp);
+                    merge(array, 
+                          buffer, 
+                          offset,
+                          runLengthLeft, 
+                          runLengthRight,
+                          cmp);
 
                     b1 = offset;
                     e1 = offset + runLengthLeft + runLengthRight;
@@ -742,17 +742,12 @@ public final class Arrays {
                 final int runLengthLeft  = entry.runLength;
                 final int runLengthRight = e1 - b1;
                 
-//                merge(source,
-//                      target,
-//                      offset,
-//                      )
-//                
-//                merge(array, 
-//                      buffer, 
-//                      offset,
-//                      runLengthLeft, 
-//                      runLengthRight,
-//                      cmp);
+                merge(array,
+                      buffer, 
+                      offset, 
+                      runLengthLeft, 
+                      runLengthRight, 
+                      cmp);
                 
                 b1 = offset;
                 e1 = offset + runLengthLeft + runLengthRight;
@@ -896,10 +891,9 @@ public final class Arrays {
             return ofs;
         }
         
-        private void merge(final T[] source,
-                           final T[] target,
+        private void merge(final T[] array,
+                           final T[] buffer,
                            final int sourceOffset,
-                           final int targetOffset,
                            final int runLengthLeft,
                            final int runLengthRight,
                            final Comparator<? super T> cmp) {
@@ -909,8 +903,8 @@ public final class Arrays {
             int length1 = runLengthLeft;
             int length2 = runLengthRight;
             
-            final int k = gallopRight(source[base2], 
-                                      source, 
+            final int k = gallopRight(array[base2], 
+                                      array, 
                                       base1, 
                                       length1, 
                                       0, 
@@ -923,8 +917,8 @@ public final class Arrays {
                 return;
             }
             
-            length2 = gallopLeft(source[base1 + length1 - 1],
-                                 source, 
+            length2 = gallopLeft(array[base1 + length1 - 1],
+                                 array, 
                                  base2, 
                                  length2, 
                                  length2 - 1, 
@@ -935,51 +929,81 @@ public final class Arrays {
             }
             
             if (length1 <= length2) {
-                mergeLo(source,
-                        target,
-                        targetOffset,
-                        base1,
+                mergeLo(array,
+                        buffer,
+                        0,
                         length1,
                         base2,
                         length2,
                         cmp);
             } else {
-                mergeHi(source,
-                        target,
-                        targetOffset,
+                mergeHi(array,
+                        buffer,
                         base1,
                         length1,
-                        base2,
+                        0,
                         length2,
                         cmp);
             }
         }
         
-        private void mergeHi(final T[] source,
-                             final T[] target,
-                             final int targetOffset,
+        private void mergeHi(final T[] array,
+                             final T[] buffer,
                              final int base1,
                              int length1,
                              final int base2,
                              int length2,
                              final Comparator<? super T> cmp) {
+            // Copy the second run into the buffer:
+            System.arraycopy(array, 
+                             base2, 
+                             buffer, 
+                             0, 
+                             length2);
+            
             int cursor1 = base1 + length1 - 1;
-            int cursor2 = base2 + length2 - 1;
-            int destination = targetOffset 
-                            + base2 
+            int cursor2 = length2 - 1;
+            int destination = base2 
                             + length2 
                             - 1;
             
-            int minimumGallop = this.minimumGallop;
+            array[destination--] = array[cursor1--];
+            
+            if (--length1 == 0) {
+                System.arraycopy(buffer, 
+                                 0,
+                                 array, 
+                                 destination - (length2 - 1), 
+                                 length2);
+                return;
+            }
+            
+            if (length2 == 1) {
+                destination -= length1;
+                cursor1     -= length1;
+                
+                System.arraycopy(array, 
+                                 cursor1 + 1,
+                                 array,
+                                 destination + 1, 
+                                 length1);
+                
+                array[destination] = buffer[cursor2];
+                return;
+            }
+            
+            int minGallop = this.minimumGallop;
             
             outer:
             while (true) {
-                int count1 = 0;
-                int count2 = 0;
+                int count1 = 0; // Number of times in a row that first run won.
+                int count2 = 0; // Number of times in a row that second run won.
                 
+                // Do the straightforoward thing until (if ever) one run appears
+                // to win consistently.
                 do {
-                    if (cmp.compare(source[cursor2], source[cursor1]) < 0) {
-                        target[destination--] = source[cursor1--];
+                    if (cmp.compare(array[cursor2], array[cursor1]) < 0) {
+                        array[destination--] = array[cursor1--];
                         count1++;
                         count2 = 0;
                         
@@ -987,7 +1011,7 @@ public final class Arrays {
                             break outer;
                         }
                     } else {
-                        target[destination--] = source[cursor2--];
+                        array[destination--] = buffer[cursor2--];
                         count2++;
                         count1 = 0;
                         
@@ -995,12 +1019,15 @@ public final class Arrays {
                             break outer;
                         }
                     }
-                } while ((count1 | count2) < minimumGallop);
+                } while ((count1 | count2) < minGallop);
                 
+                // One run is winning so consistently that galloping may be a 
+                // huge win. So try that, and continue galloping until (if ever)
+                // neither run appears to be winning consistently anymore.
                 do {
                     count1 = length1 
-                           - gallopRight(source[cursor2],
-                                         source, 
+                           - gallopRight(buffer[cursor2],
+                                         array, 
                                          base1, 
                                          length1,
                                          length1 - 1, 
@@ -1011,9 +1038,9 @@ public final class Arrays {
                         cursor1 -= count1;
                         length1 -= count1;
                         
-                        System.arraycopy(source, 
+                        System.arraycopy(array, 
                                          cursor1 + 1,
-                                         target,
+                                         array,
                                          destination + 1,
                                          count1);
                         
@@ -1022,11 +1049,15 @@ public final class Arrays {
                         }
                     }
                     
-                    target[destination--] = source[cursor2--];
+                    array[destination--] = buffer[cursor2--];
                     
-                    count2 = length2 - gallopLeft(source[cursor1],
-                                                  source,
-                                                  base2,
+                    if (--length2 == 1) {
+                        break outer;
+                    }
+                    
+                    count2 = length2 - gallopLeft(array[cursor1],
+                                                  buffer,
+                                                  0,
                                                   length2,
                                                   length2 - 1,
                                                   cmp);
@@ -1036,9 +1067,9 @@ public final class Arrays {
                         cursor2 -= count2;
                         length2 -= count2;
                         
-                        System.arraycopy(source,
+                        System.arraycopy(buffer,
                                          cursor2 + 1, 
-                                         target,
+                                         array,
                                          destination + 1, 
                                          count2);
                         
@@ -1047,46 +1078,47 @@ public final class Arrays {
                         }
                     }
                     
-                    target[destination--] = source[cursor1--];
+                    array[destination--] = array[cursor1--];
                     
                     if (--length1 == 0) {
                         break outer;
                     }
                     
-                    --minimumGallop;
-                } while (count1 >= MINIMUM_GALLOP || count2 >= MINIMUM_GALLOP);
+                    --minGallop;
+                } while (count1 >= MINIMUM_GALLOP | count2 >= MINIMUM_GALLOP);
                 
-                if (minimumGallop < 0) {
-                    minimumGallop = 0;
+                if (minGallop < 0) {
+                    minGallop = 0;
                 }
                 
-                minimumGallop += 2;
+                minGallop += 2; // Penalize for leaving the gallop mode.   
+            } // End of 'outer' loop.
+            
+            this.minimumGallop = minGallop < 1 ? 1 : minGallop;
+            
+            if (length2 == 1) {
+                destination -= length1;
+                cursor1 -= length1;
                 
+                System.arraycopy(array,
+                                 cursor1 + 1, 
+                                 array, 
+                                 destination + 1, 
+                                 length1);
+            } else if (length2 == 0) {
+                throw new IllegalArgumentException(
+                    "Comparison method violates its general contract!");
+            } else {
+                System.arraycopy(buffer,
+                                 0, 
+                                 array, 
+                                 destination - (length2 - 1),
+                                 length2);
             }
-            
-            this.minimumGallop = minimumGallop < 1 ? 1 : minimumGallop;
-            
-            System.arraycopy(source, cursor1, target, destination, length1);
-            System.arraycopy(source, cursor2, target, destination, length2);
-//            if (length2 == 1) {
-//                destination -= length1;
-//                cursor1 -= length1;
-//                
-//                System.arraycopy(source,
-//                                 cursor1 + 1, 
-//                                 target, 
-//                                 destination + 1, 
-//                                 length1);
-//            } else if (length2 == 0) {
-//                throw new IllegalArgumentException(
-//                    "Comparison method violates its general contract!");
-//            }
         }
         
-        // TODO: Under work.
-        private void mergeLo(final T[] source,
-                             final T[] target,
-                             final int targetOffset,
+        private void mergeLo(final T[] array,
+                             final T[] buffer,
                              final int base1,
                              int length1,
                              final int base2,
@@ -1095,27 +1127,34 @@ public final class Arrays {
             
             int cursor1 = base1;
             int cursor2 = base2;
-            int destination = targetOffset;
+            int destination = base1;
             
-            target[destination++] = source[cursor2++];
+            // Copy the first run into the buffer array:
+            System.arraycopy(array,
+                             base1, 
+                             buffer, 
+                             cursor2, 
+                             length1);
+            
+            array[destination++] = array[cursor2++];
             
             if (--length2 == 0) {
-                System.arraycopy(source, 
+                System.arraycopy(buffer, 
                                  cursor1,
-                                 target, 
-                                 targetOffset,
+                                 array, 
+                                 destination,
                                  length1);
                 return;
             }
             
             if (length1 == 1) {
-                System.arraycopy(source, 
+                System.arraycopy(array, 
                                  cursor2, 
-                                 target, 
-                                 targetOffset + length1,
+                                 array, 
+                                 destination,
                                  length2);
                 
-                target[destination + length2] = source[cursor1];
+                array[destination + length2] = buffer[cursor1];
                 return;
             }
             
@@ -1123,12 +1162,16 @@ public final class Arrays {
             
             outer:
             while (true) {
-                int count1 = 0;
-                int count2 = 0;
+                int count1 = 0; // Number of times in a row that the first run 
+                                // won.
+                int count2 = 0; // Number of times in a row that the second run
+                                // won.
                 
+                // Do the straightforward thing until (if ever) one run starts
+                // winning consistently:
                 do {
-                    if (cmp.compare(source[cursor2], source[cursor1]) < 0) {
-                        target[destination++] = source[cursor2++];
+                    if (cmp.compare(array[cursor2], buffer[cursor1]) < 0) {
+                        array[destination++] = array[cursor2++];
                         count2++;
                         count1 = 0;
                         
@@ -1136,28 +1179,31 @@ public final class Arrays {
                             break outer;
                         }
                     } else {
-                        target[destination++] = source[cursor1++];
+                        array[destination++] = buffer[cursor1++];
                         count1++;
                         count2 = 0;
                         
-                        if (--length1 == 0) {
+                        if (--length1 == 1) {
                             break outer;
                         }
                     }
                 } while ((count1 | count2) < minGallop);
                 
+                // One run is winning so consistently that galloping may be a 
+                // huge win. So try that and continue galloping until (if ever)
+                // neither run appears to be winning consistently anymore:
                 do {
-                    count1 = gallopRight(source[cursor2],
-                                         source,
+                    count1 = gallopRight(array[cursor2],
+                                         buffer,
                                          cursor1, 
                                          length1, 
                                          0, 
                                          cmp);
 
                     if (count1 != 0) {
-                        System.arraycopy(source,
+                        System.arraycopy(buffer,
                                          cursor1, 
-                                         target, 
+                                         array, 
                                          destination,
                                          count1);
 
@@ -1170,23 +1216,23 @@ public final class Arrays {
                         }
                     }
 
-                    target[destination++] = source[cursor2++];
+                    array[destination++] = array[cursor2++];
 
                     if (--length2 == 0) {
                         break outer;
                     }
 
-                    count2 = gallopLeft(source[cursor1],
-                                        source,
+                    count2 = gallopLeft(buffer[cursor1],
+                                        array,
                                         cursor2,
                                         length2,
                                         0,
                                         cmp);
 
                     if (count2 != 0) {
-                        System.arraycopy(source, 
+                        System.arraycopy(array, 
                                          cursor2, 
-                                         target, 
+                                         array, 
                                          destination,
                                          count2);
 
@@ -1199,7 +1245,7 @@ public final class Arrays {
                         }
                     }
 
-                    target[destination++] = source[cursor1++];
+                    array[destination++] = buffer[cursor1++];
 
                     if (--length1 == 1) {
                         break outer;
@@ -1212,195 +1258,141 @@ public final class Arrays {
                 minGallop = 0;
             }
             
-            minGallop += 2;
+            minGallop += 2; // Penalize for leaving the galloping mode.
         }
             
         this.minimumGallop = minGallop < 1 ? 1 : minGallop;
         
-        System.arraycopy(source, cursor1, target, destination, length1);
-        System.arraycopy(source, cursor2, target, destination, length2);
+        if (length1 == 1) {
+            System.arraycopy(array,
+                             cursor2, 
+                             array, 
+                             destination, 
+                             length2);
+            
+            array[destination + length2] = buffer[cursor1];
+        } else if (length1 == 0) {
+            throw new IllegalArgumentException(
+                "Comparison method violates its general contract!");
+        } else {
+            System.arraycopy(buffer, 
+                             cursor1, 
+                             array,
+                             destination, 
+                             length1);
+        }
     }
-//        
-//    private static <T> void merge(final T[] array,
-//                                  final T[] buffer,
-//                                  final int offset,
-//                                  final int runLengthLeft,
-//                                  final int runLengthRight,
-//                                  final Comparator<? super T> cmp) {
-//        
-//            if (runLengthLeft <= runLengthRight) {
-//                // Once here, the left run is copied to the buffer:
-//                System.arraycopy(array,
-//                                 offset, 
-//                                 buffer,
-//                                 0, 
-//                                 runLengthLeft);
-//                
-//                int indexLeft  = 0;
-//                int indexRight = offset + runLengthLeft;
-//                int indexArray = offset;
-//                
-//                final int indexBoundLeft  = runLengthLeft;
-//                final int indexBoundRight = offset 
-//                                          + runLengthLeft
-//                                          + runLengthRight;
-//                
-//                while (indexLeft  != indexBoundLeft &&
-//                       indexRight != indexBoundRight) {
-//                    
-//                    array[indexArray++] = 
-//                            cmp.compare(buffer[indexLeft],
-//                                        array[indexRight]) <= 0 ?
-//                            buffer[indexLeft++] :
-//                            array[indexRight++];
-//                }
-//                
-//                System.arraycopy(buffer,
-//                                 indexLeft, 
-//                                 array, 
-//                                 indexArray, 
-//                                 indexBoundLeft - indexLeft);
-//            } else {
-//                // Once here, the right run is copied to the buffer:
-//                System.arraycopy(array,
-//                                 offset + runLengthLeft, 
-//                                 buffer,
-//                                 0, 
-//                                 runLengthRight);
-//                
-//                int indexLeft  = offset + runLengthLeft - 1;
-//                int indexRight = runLengthRight - 1;
-//                int indexArray = offset + runLengthLeft + runLengthRight - 1;
-//                
-//                final int indexBoundLeft  = offset;
-//                
-//                while (indexLeft  >= indexBoundLeft && indexRight >= 0) {
-//                    
-//                    array[indexArray--] = 
-//                            cmp.compare(array[indexLeft], 
-//                                        buffer[indexRight]) > 0 ?
-//                            array[indexLeft--] :
-//                            buffer[indexRight--];
-//                } 
-//                
-//                System.arraycopy(buffer, 
-//                                 0, 
-//                                 array, 
-//                                 offset, 
-//                                 indexRight + 1);
-//            }
-//        }
         
-        static final class RunStack {
-            
-            final static class RunStackEntry {
-                int runOffset;
-                int runLength;
-                int runPower;
-                
-                RunStackEntry(final int runOffset,
-                              final int runLength,
-                              final int runPower) {
-                    this.runOffset = runOffset;
-                    this.runLength = runLength;
-                    this.runPower  = runPower;
-                }
-            }
-            
-            private final RunStackEntry[] stackData;
-            private int size;
-            
-            RunStack(final int n) {
-                final int stackDataCapacity = 1 
-                                            + (int) Math.ceil(Math.log(n) / 
-                                                              Math.log(2.0));
-                
-                this.stackData = new RunStackEntry[stackDataCapacity];
-            }
-            
-            boolean isEmpty() {
-                return size == 0;
-            }
-            
-            void push(final int runOffset,
-                      final int runLength,
-                      final int runPower) {
-                stackData[size++] = new RunStackEntry(runOffset,
-                                                      runLength,
-                                                      runPower);
-            }
-            
-            RunStackEntry pop() {
-                return stackData[--size];
-            }
-            
-            RunStackEntry top() {
-                return stackData[size - 1];
+    static final class RunStack {
+
+        final static class RunStackEntry {
+            int runOffset;
+            int runLength;
+            int runPower;
+
+            RunStackEntry(final int runOffset,
+                          final int runLength,
+                          final int runPower) {
+                this.runOffset = runOffset;
+                this.runLength = runLength;
+                this.runPower  = runPower;
             }
         }
-        
-        private static int nodePower(final int n, 
-                                     final int b1,
-                                     final int e1,
-                                     final int b2,
-                                     final int e2) {
-            final long l2 = (long) b1 + b2;
-            final long r2 = (long) b2 + e2;
-            
-            final int a = (int) ((l2 << 30) / n);
-            final int b = (int) ((r2 << 30) / n);
-            
-            return Integer.numberOfLeadingZeros(a ^ b);
+
+        private final RunStackEntry[] stackData;
+        private int size;
+
+        RunStack(final int n) {
+            final int stackDataCapacity = 1 
+                                        + (int) Math.ceil(Math.log(n) / 
+                                                          Math.log(2.0));
+
+            this.stackData = new RunStackEntry[stackDataCapacity];
         }
-        
-        private static <T> int firstRunOf(final T[] array,
-                                          final int fromIndex,
-                                          final int toIndex,
-                                          final Comparator<? super T> cmp) {
-            int indexLeft = fromIndex;
-            
-            while (indexLeft + 1 < toIndex) {
-                final int indexHead = indexLeft;
-                int indexRight = indexLeft + 1;
-                
-                if (cmp.compare(array[indexLeft], array[indexRight]) <= 0) {
-                    do {
-                        ++indexLeft;
-                        ++indexRight;
-                    } while (indexRight < toIndex &&
-                             cmp.compare(array[indexLeft], 
-                                         array[indexRight]) <= 0);
-                } else {
-                    do {
-                        ++indexLeft;
-                        ++indexRight;
-                    } while (indexRight < toIndex &&
-                             cmp.compare(array[indexLeft], 
-                                         array[indexRight]) > 0);
-                    
-                    reverseRun(array,
-                               indexHead,
-                               indexRight);
-                }
-                
-                if (indexHead != fromIndex &&
-                    cmp.compare(array[indexHead - 1], array[indexHead]) > 0) {
-                    return indexHead;
-                }
-                
-                indexLeft = indexRight;
-            }
-            
-            if (indexLeft < toIndex && 
-                indexLeft != fromIndex &&
-                cmp.compare(array[indexLeft - 1],
-                            array[indexLeft]) > 0) {
-                
-                return indexLeft;
-            }
-        
-            return toIndex;
+
+        boolean isEmpty() {
+            return size == 0;
         }
+
+        void push(final int runOffset,
+                  final int runLength,
+                  final int runPower) {
+            stackData[size++] = new RunStackEntry(runOffset,
+                                                  runLength,
+                                                  runPower);
+        }
+
+        RunStackEntry pop() {
+            return stackData[--size];
+        }
+
+        RunStackEntry top() {
+            return stackData[size - 1];
+        }
+    }
+        
+    private static int nodePower(final int n, 
+                                 final int b1,
+                                 final int e1,
+                                 final int b2,
+                                 final int e2) {
+        final long l2 = (long) b1 + b2;
+        final long r2 = (long) b2 + e2;
+
+        final int a = (int) ((l2 << 30) / n);
+        final int b = (int) ((r2 << 30) / n);
+
+        return Integer.numberOfLeadingZeros(a ^ b);
+    }
+
+    private static <T> int firstRunOf(final T[] array,
+                                      final int fromIndex,
+                                      final int toIndex,
+                                      final Comparator<? super T> cmp) {
+        int indexLeft = fromIndex;
+
+        while (indexLeft + 1 < toIndex) {
+            final int indexHead = indexLeft;
+            int indexRight = indexLeft + 1;
+
+            if (cmp.compare(array[indexLeft], array[indexRight]) <= 0) {
+                do {
+                    ++indexLeft;
+                    ++indexRight;
+                } while (indexRight < toIndex &&
+                         cmp.compare(array[indexLeft], 
+                                     array[indexRight]) <= 0);
+            } else {
+                do {
+                    ++indexLeft;
+                    ++indexRight;
+                } while (indexRight < toIndex &&
+                         cmp.compare(array[indexLeft], 
+                                     array[indexRight]) > 0);
+
+                reverseRun(array,
+                           indexHead,
+                           indexRight);
+            }
+
+            if (indexHead != fromIndex &&
+                cmp.compare(array[indexHead - 1], array[indexHead]) > 0) {
+                return indexHead;
+            }
+
+            indexLeft = indexRight;
+        }
+
+        if (indexLeft < toIndex && 
+            indexLeft != fromIndex &&
+            cmp.compare(array[indexLeft - 1],
+                        array[indexLeft]) > 0) {
+
+            return indexLeft;
+        }
+
+        return toIndex;
+    }
     }
     
     /**
