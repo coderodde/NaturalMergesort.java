@@ -168,7 +168,7 @@ public final class Arrays {
 
                 final int runLengthLeft  = queue.dequeue();
                 final int runLengthRight = queue.dequeue();
-
+                    
                 merge(source, 
                       target, 
                       sourceOffset + offset, 
@@ -478,168 +478,6 @@ public final class Arrays {
         }
 
         /**
-         * Merges two consecutive runs into one run.
-         * 
-         * @param <T>            the type of the array components.
-         * @param source         the source array.
-         * @param target         the target array.
-         * @param sourceOffset   the offset to the source array.
-         * @param targetOffset   the offset to the target array.
-         * @param runLengthLeft  the length of the left run.
-         * @param runLengthRight the length of the right run.
-         * @param cmp            the comparator.
-         */
-        private static <T> void merge(final T[] source,
-                                      final T[] target,
-                                      final int sourceOffset,
-                                      int targetOffset,
-                                      final int runLengthLeft,
-                                      final int runLengthRight,
-                                      final Comparator<? super T> cmp) {
-
-            int indexLeft  = sourceOffset;
-            int indexRight = sourceOffset + runLengthLeft;
-
-            final int indexBoundLeft  = indexRight;
-            final int indexBoundRight = indexRight + runLengthRight;
-
-            while (indexLeft != indexBoundLeft && indexRight != indexBoundRight) {
-
-                final T elementLeft  = source[indexLeft];
-                final T elementRight = source[indexRight];
-
-                target[targetOffset++] = cmp.compare(elementRight, 
-                                                     elementLeft) < 0 ?
-                        source[indexRight++] :
-                        source[indexLeft++];
-            }
-
-            System.arraycopy(source, 
-                             indexLeft, 
-                             target, 
-                             targetOffset, 
-                             indexBoundLeft - indexLeft);
-
-            System.arraycopy(source, 
-                             indexRight, 
-                             target, 
-                             targetOffset, 
-                             indexBoundRight - indexRight);
-        }
-
-        /**
-         * Performs a 3-way merge.
-         * 
-         * @param <T>              the type of the array components.
-         * @param source           the source array.
-         * @param target           the target array.
-         * @param sourceOffset     the offset to the source array.
-         * @param targetOffset     the offset to the target array.
-         * @param runLengthLeft    the length of the left run.
-         * @param runLengthMiddle  the length of the middle run.
-         * @param runLengthRight   the length of the right run.
-         * @param cmp              the comparator.
-         */
-        private static <T> void merge(final T[] source,
-                                      final T[] target,
-                                      final int sourceOffset,
-                                      int targetOffset,
-                                      final int runLengthLeft,
-                                      final int runLengthMiddle,
-                                      final int runLengthRight,
-                                      final Comparator<? super T> cmp) {
-
-            int indexLeft   = sourceOffset;
-            int indexMiddle = sourceOffset + runLengthLeft;
-            int indexRight  = indexMiddle + runLengthMiddle;
-
-            final int indexBoundLeft   = indexMiddle;
-            final int indexBoundMiddle = indexRight;
-            final int IndexBoundRight  = indexRight + runLengthRight;
-
-            while (indexLeft   != indexBoundLeft   &&
-                   indexMiddle != indexBoundMiddle &&
-                   indexRight  != IndexBoundRight) {
-
-                final T elementLeft   = source[indexLeft];
-                final T elementMiddle = source[indexMiddle];
-                final T elementRight  = source[indexRight];
-
-                if (cmp.compare(elementRight, elementMiddle) < 0) {
-                    // Here, elmeentRight < elementMiddle.
-                    if (cmp.compare(elementRight, elementLeft) < 0) {
-                        target[targetOffset++] = elementRight;
-                        ++indexRight;
-                    } else {
-                        target[targetOffset++] = elementLeft;
-                        ++indexLeft;
-                    }
-                } else {
-                    // Here, elementMiddle <= elementRight.
-                    if (cmp.compare(elementLeft, elementMiddle) <= 0) {
-                        target[targetOffset++] = elementLeft;
-                        ++indexLeft;
-                    } else {
-                        target[targetOffset++] = elementMiddle;
-                        ++indexMiddle;
-                    }
-                }
-            }
-
-            while (indexLeft != indexBoundLeft && indexMiddle != indexBoundMiddle) {
-
-                final T elementLeft   = source[indexLeft];
-                final T elementMiddle = source[indexMiddle]; 
-
-                target[targetOffset++] = cmp.compare(elementMiddle,
-                                                     elementLeft) < 0 ?
-                        source[indexMiddle++] :
-                        source[indexLeft++];
-            }
-
-            while (indexLeft != indexBoundLeft && indexRight != IndexBoundRight) {
-
-                final T elementLeft  = source[indexLeft];
-                final T elementRight = source[indexRight];
-
-                target[targetOffset++] = cmp.compare(elementRight,
-                                                     elementLeft) < 0 ? 
-                        source[indexRight++] :
-                        source[indexLeft++];
-            }
-
-            while (indexMiddle != indexBoundMiddle &&
-                   indexRight != IndexBoundRight) {
-
-                final T elementMiddle = source[indexMiddle];
-                final T elementRight  = source[indexRight];
-
-                target[targetOffset++] = cmp.compare(elementRight, 
-                                                     elementMiddle) < 0 ?
-                        source[indexRight++] :
-                        source[indexMiddle++];
-            }
-
-            System.arraycopy(source, 
-                             indexLeft, 
-                             target, 
-                             targetOffset, 
-                             indexBoundLeft - indexLeft);
-
-            System.arraycopy(source, 
-                             indexMiddle, 
-                             target, 
-                             targetOffset, 
-                             indexBoundMiddle - indexMiddle);
-
-            System.arraycopy(source, 
-                             indexRight, 
-                             target, 
-                             targetOffset, 
-                             IndexBoundRight - indexRight);
-        }
-
-        /**
          * Computes the run length capacity that can definitely fit all possible 
          * runs in the data to sort.
          * 
@@ -667,13 +505,11 @@ public final class Arrays {
 
     public static final class Powersort<T> {
         
-        private static final int MINIMUM_GALLOP = 7;
-        
-        private int minimumGallop = MINIMUM_GALLOP;
-        
         private final int[] runOffsets;
         private final int[] runLengths;
         private final int[] runPowers;
+        private final T[][] sourceArrays;
+        private final T[][] targetArrays;
         private int stackSize;
         
         public static <T> void sort(final T[] array,
@@ -698,7 +534,10 @@ public final class Arrays {
             }
             
             final Powersort<T> powersort = new Powersort<>(rangeLength);
-            final T[] buffer = (T[])  new Object[rangeLength / 2];
+            final T[] buffer = (T[])  new Object[rangeLength];
+            
+            T[] source = array;
+            T[] target = buffer;
             
             int b1 = fromIndex;
             int e1 = firstRunOf(array, 
@@ -713,6 +552,12 @@ public final class Arrays {
                                     toIndex,
                                     cmp);
                 
+                if (e2 == toIndex) {
+                    final T[] tmp = source;
+                    source = target;
+                    target = tmp;
+                }
+                
                 final int power = nodePower(rangeLength,
                                             b1 - fromIndex,
                                             b2 - fromIndex,
@@ -724,21 +569,34 @@ public final class Arrays {
                     final int offset         = powersort.topOffset();
                     final int runLengthLeft  = powersort.topLength();
                     final int runLengthRight = e1 - b1;
+                    final T[] src            = powersort.topSource();
+                    final T[] dst            = powersort.topTarget();
                     
                     powersort.pop();
 
-                    merge(array, 
-                          buffer, 
+                    merge(src, 
+                          dst, 
                           offset,
+                          0,
                           runLengthLeft, 
                           runLengthRight,
                           cmp);
 
                     b1 = offset;
                     e1 = offset + runLengthLeft + runLengthRight;
+                    
+                    if (e1 == toIndex) {
+                        final T[] tmp = source;
+                        source = target;
+                        target = tmp;
+                    }
                 }
                 
-                powersort.push(b1, e1 - b1, power);
+                powersort.push(b1, 
+                               e1 - b1, 
+                               power, 
+                               source,
+                               target);
                 b1 = b2;
                 e1 = e2;
             }
@@ -748,18 +606,35 @@ public final class Arrays {
                 final int offset         = powersort.topOffset();
                 final int runLengthLeft  = powersort.topLength();
                 final int runLengthRight = e1 - b1;
+                final T[] src            = powersort.topSource();
+                final T[] dst            = powersort.topTarget();
                 
                 powersort.pop();
                 
-                merge(array,
-                      buffer, 
+                merge(src,
+                      dst, 
                       offset, 
+                      0,
                       runLengthLeft, 
                       runLengthRight, 
                       cmp);
                 
+                if (powersort.runStackIsEmpty() && dst == buffer) {
+                    System.arraycopy(buffer,
+                                     0,
+                                     array,
+                                     fromIndex,
+                                     rangeLength);
+                }
+                
                 b1 = offset;
                 e1 = offset + runLengthLeft + runLengthRight;
+                
+                if (e1 == toIndex) {
+                    final T[] tmp = source;
+                    source = target;
+                    target = tmp;
+                }
             }
         }
         
@@ -771,6 +646,12 @@ public final class Arrays {
             this.runOffsets = new int[stackCapacity];
             this.runLengths = new int[stackCapacity];
             this.runPowers  = new int[stackCapacity];
+            this.sourceArrays = (T[][]) new Object[stackCapacity][];
+            this.targetArrays = (T[][]) new Object[stackCapacity][];
+        }
+        
+        private int size() {
+            return stackSize;
         }
         
         private boolean runStackIsEmpty() {
@@ -789,88 +670,192 @@ public final class Arrays {
             return runLengths[stackSize - 1];
         }
         
+        private T[] topSource() {
+            return sourceArrays[stackSize - 1];
+        }
+        
+        private T[] topTarget() {
+            return targetArrays[stackSize - 1];
+        }
+        
         private void pop() {
             --stackSize;
         }
         
         private void push(final int offset,
                           final int length,
-                          final int power) {
+                          final int power,
+                          final T[] source,
+                          final T[] target) {
             runOffsets[stackSize] = offset;
             runLengths[stackSize] = length;
             runPowers [stackSize] = power;
+            sourceArrays[stackSize] = source;
+            targetArrays[stackSize] = target;
             ++stackSize;
         }
     }
     
-    private static <T> void merge(final T[] array,
-                                  final T[] buffer,
-                                  final int offset,
+    /**
+     * Merges two consecutive runs into one run.
+     * 
+     * @param <T>            the type of the array components.
+     * @param source         the source array.
+     * @param target         the target array.
+     * @param sourceOffset   the offset to the source array.
+     * @param targetOffset   the offset to the target array.
+     * @param runLengthLeft  the length of the left run.
+     * @param runLengthRight the length of the right run.
+     * @param cmp            the comparator.
+     */
+    private static <T> void merge(final T[] source,
+                                  final T[] target,
+                                  final int sourceOffset,
+                                  int targetOffset,
                                   final int runLengthLeft,
                                   final int runLengthRight,
                                   final Comparator<? super T> cmp) {
-        
-        if (runLengthLeft <= runLengthRight) {
-            // Once here, the left run is copied to the buffer:
-            System.arraycopy(array,
-                             offset, 
-                             buffer,
-                             0, 
-                             runLengthLeft);
 
-            int indexLeft  = 0;
-            int indexRight = offset + runLengthLeft;
-            int indexArray = offset;
+        int indexLeft  = sourceOffset;
+        int indexRight = sourceOffset + runLengthLeft;
 
-            final int indexBoundLeft  = runLengthLeft;
-            final int indexBoundRight = offset 
-                                      + runLengthLeft
-                                      + runLengthRight;
+        final int indexBoundLeft  = indexRight;
+        final int indexBoundRight = indexRight + runLengthRight;
 
-            while (indexLeft  != indexBoundLeft &&
-                   indexRight != indexBoundRight) {
+        while (indexLeft != indexBoundLeft && indexRight != indexBoundRight) {
 
-                array[indexArray++] = 
-                        cmp.compare(buffer[indexLeft],
-                                    array[indexRight]) <= 0 ?
-                        buffer[indexLeft++] :
-                        array[indexRight++];
-            }
+            final T elementLeft  = source[indexLeft];
+            final T elementRight = source[indexRight];
 
-            System.arraycopy(buffer,
-                             indexLeft, 
-                             array, 
-                             indexArray, 
-                             indexBoundLeft - indexLeft);
-        } else {
-            // Once here, the right run is copied to the buffer:
-            System.arraycopy(array,
-                             offset + runLengthLeft, 
-                             buffer,
-                             0, 
-                             runLengthRight);
-
-            int indexLeft  = offset + runLengthLeft - 1;
-            int indexRight = runLengthRight - 1;
-            int indexArray = offset + runLengthLeft + runLengthRight - 1;
-
-            final int indexBoundLeft  = offset;
-
-            while (indexLeft  >= indexBoundLeft && indexRight >= 0) {
-
-                array[indexArray--] = 
-                        cmp.compare(array[indexLeft], 
-                                    buffer[indexRight]) > 0 ?
-                        array[indexLeft--] :
-                        buffer[indexRight--];
-            } 
-
-            System.arraycopy(buffer, 
-                             0, 
-                             array, 
-                             offset, 
-                             indexRight + 1);
+            target[targetOffset++] = cmp.compare(elementRight, 
+                                                 elementLeft) < 0 ?
+                    source[indexRight++] :
+                    source[indexLeft++];
         }
+
+        System.arraycopy(source, 
+                         indexLeft, 
+                         target, 
+                         targetOffset, 
+                         indexBoundLeft - indexLeft);
+
+        System.arraycopy(source, 
+                         indexRight, 
+                         target, 
+                         targetOffset, 
+                         indexBoundRight - indexRight);
+    }
+    
+    /**
+     * Performs a 3-way merge.
+     * 
+     * @param <T>              the type of the array components.
+     * @param source           the source array.
+     * @param target           the target array.
+     * @param sourceOffset     the offset to the source array.
+     * @param targetOffset     the offset to the target array.
+     * @param runLengthLeft    the length of the left run.
+     * @param runLengthMiddle  the length of the middle run.
+     * @param runLengthRight   the length of the right run.
+     * @param cmp              the comparator.
+     */
+    private static <T> void merge(final T[] source,
+                                  final T[] target,
+                                  final int sourceOffset,
+                                  int targetOffset,
+                                  final int runLengthLeft,
+                                  final int runLengthMiddle,
+                                  final int runLengthRight,
+                                  final Comparator<? super T> cmp) {
+
+        int indexLeft   = sourceOffset;
+        int indexMiddle = sourceOffset + runLengthLeft;
+        int indexRight  = indexMiddle + runLengthMiddle;
+
+        final int indexBoundLeft   = indexMiddle;
+        final int indexBoundMiddle = indexRight;
+        final int IndexBoundRight  = indexRight + runLengthRight;
+
+        while (indexLeft   != indexBoundLeft   &&
+               indexMiddle != indexBoundMiddle &&
+               indexRight  != IndexBoundRight) {
+
+            final T elementLeft   = source[indexLeft];
+            final T elementMiddle = source[indexMiddle];
+            final T elementRight  = source[indexRight];
+
+            if (cmp.compare(elementRight, elementMiddle) < 0) {
+                // Here, elmeentRight < elementMiddle.
+                if (cmp.compare(elementRight, elementLeft) < 0) {
+                    target[targetOffset++] = elementRight;
+                    ++indexRight;
+                } else {
+                    target[targetOffset++] = elementLeft;
+                    ++indexLeft;
+                }
+            } else {
+                // Here, elementMiddle <= elementRight.
+                if (cmp.compare(elementLeft, elementMiddle) <= 0) {
+                    target[targetOffset++] = elementLeft;
+                    ++indexLeft;
+                } else {
+                    target[targetOffset++] = elementMiddle;
+                    ++indexMiddle;
+                }
+            }
+        }
+
+        while (indexLeft != indexBoundLeft && indexMiddle != indexBoundMiddle) {
+
+            final T elementLeft   = source[indexLeft];
+            final T elementMiddle = source[indexMiddle]; 
+
+            target[targetOffset++] = cmp.compare(elementMiddle,
+                                                 elementLeft) < 0 ?
+                    source[indexMiddle++] :
+                    source[indexLeft++];
+        }
+
+        while (indexLeft != indexBoundLeft && indexRight != IndexBoundRight) {
+
+            final T elementLeft  = source[indexLeft];
+            final T elementRight = source[indexRight];
+
+            target[targetOffset++] = cmp.compare(elementRight,
+                                                 elementLeft) < 0 ? 
+                    source[indexRight++] :
+                    source[indexLeft++];
+        }
+
+        while (indexMiddle != indexBoundMiddle &&
+               indexRight != IndexBoundRight) {
+
+            final T elementMiddle = source[indexMiddle];
+            final T elementRight  = source[indexRight];
+
+            target[targetOffset++] = cmp.compare(elementRight, 
+                                                 elementMiddle) < 0 ?
+                    source[indexRight++] :
+                    source[indexMiddle++];
+        }
+
+        System.arraycopy(source, 
+                         indexLeft, 
+                         target, 
+                         targetOffset, 
+                         indexBoundLeft - indexLeft);
+
+        System.arraycopy(source, 
+                         indexMiddle, 
+                         target, 
+                         targetOffset, 
+                         indexBoundMiddle - indexMiddle);
+
+        System.arraycopy(source, 
+                         indexRight, 
+                         target, 
+                         targetOffset, 
+                         IndexBoundRight - indexRight);
     }
         
     private static int nodePower(final int rangeLength,
