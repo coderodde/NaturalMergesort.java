@@ -713,8 +713,7 @@ public final class Arrays {
                                     toIndex,
                                     cmp);
                 
-                final int power = nodePower(0,
-                                            rangeLength,
+                final int power = nodePower(rangeLength,
                                             b1 - fromIndex,
                                             b2 - fromIndex,
                                             e2 - fromIndex);
@@ -1334,20 +1333,7 @@ public final class Arrays {
         }
     }
         
-    private static int nodePower(final int fromIndex,
-                                 final int toIndex,
-                                 final int b1,
-                                 final int b2,
-                                 final int e2) {
-        final int n = toIndex - fromIndex;
-        final long l2 = b1 + b2 - 2 * fromIndex;
-        final long r2 = b2 + e2 - 2 * fromIndex;
-        final long a = ((l2 << 30) / n);
-        final long b = ((r2 << 30) / n);
-        return Long.numberOfLeadingZeros(a ^ b);
-    }
-        
-    private static int nodePower2(final int rangeLength,
+    private static int nodePower(final int rangeLength,
                                  final int b1,
                                  final int b2,
                                  final int e2) {
