@@ -713,10 +713,10 @@ public final class Arrays {
                                     toIndex,
                                     cmp);
                 
-                final int power = nodePower(rangeLength, 
-                                            b1 - fromIndex, 
-                                            e1 - fromIndex,
-                                            b2 - fromIndex, 
+                final int power = nodePower(fromIndex,
+                                            rangeLength,
+                                            b1 - fromIndex,
+                                            b2 - fromIndex,
                                             e2 - fromIndex);
                 
                 while (!powersort.runStackIsEmpty() && 
@@ -809,63 +809,63 @@ public final class Arrays {
                                           final int length,
                                           final int hint,
                                           final Comparator<? super T> cmp) {
-            int lastOfs = 0;
-            int ofs = 1;
+            int lastOffset = 0;
+            int offset = 1;
             
             if (cmp.compare(key, array[base + hint]) > 0) {
-                final int maxOfs = length - hint;
+                final int maxOffset = length - hint;
                 
-                while (ofs < maxOfs &&
-                       cmp.compare(key, array[base + hint + ofs]) > 0) {
-                    lastOfs = ofs;
-                    ofs = (ofs << 1) + 1;
+                while (offset < maxOffset &&
+                       cmp.compare(key, array[base + hint + offset]) > 0) {
+                    lastOffset = offset;
+                    offset = (offset << 1) + 1;
                     
-                    if (ofs <= 0) {
-                        ofs = maxOfs;
+                    if (offset <= 0) {
+                        offset = maxOffset;
                     }
                 }
                 
-                if (ofs > maxOfs) {
-                    ofs = maxOfs;
+                if (offset > maxOffset) {
+                    offset = maxOffset;
                 }
                 
-                lastOfs += hint;
-                ofs     += hint;
+                lastOffset += hint;
+                offset     += hint;
             } else {
-                final int maxOfs = hint + 1;
+                final int maxOffset = hint + 1;
                 
-                while (ofs < maxOfs &&
-                       cmp.compare(key, array[base + hint - ofs]) <= 0) {
-                    lastOfs = ofs;
-                    ofs = (ofs << 1) + 1;
+                while (offset < maxOffset &&
+                       cmp.compare(key, array[base + hint - offset]) <= 0) {
+                    lastOffset = offset;
+                    offset = (offset << 1) + 1;
                     
-                    if (ofs <= 0) {
-                        ofs = maxOfs;
+                    if (offset <= 0) {
+                        offset = maxOffset;
                     }
                 }
                 
-                if (ofs > maxOfs) {
-                    ofs = maxOfs;
+                if (offset > maxOffset) {
+                    offset = maxOffset;
                 }
                 
-                final int tmp = lastOfs;
-                lastOfs = hint - ofs;
-                ofs = hint - tmp;
+                final int tmp = lastOffset;
+                lastOffset = hint - offset;
+                offset = hint - tmp;
             }
             
-            ++lastOfs;
+            ++lastOffset;
             
-            while (lastOfs < ofs) {
-                final int m = lastOfs + ((ofs - lastOfs) >>> 1);
+            while (lastOffset < offset) {
+                final int m = lastOffset + ((offset - lastOffset) >>> 1);
                 
                 if (cmp.compare(key, array[base + m]) > 0) {
-                    lastOfs = m + 1;
+                    lastOffset = m + 1;
                 } else {
-                    ofs = m;
+                    offset = m;
                 }
             }
             
-            return ofs;
+            return offset;
         }
         
         private static <T> int gallopRight(final T key,
@@ -875,65 +875,65 @@ public final class Arrays {
                                            final int hint,
                                            final Comparator<? super T> cmp) {
             
-            int ofs = 1;
-            int lastOfs = 0;
+            int offset = 1;
+            int lastOffset = 0;
             
             if (cmp.compare(key, array[base + hint]) < 0) {
-                final int maxOfs = hint + 1;
+                final int maxOffset = hint + 1;
                 
-                while (ofs < maxOfs && 
-                       cmp.compare(key, array[base + hint - ofs]) < 0) {
+                while (offset < maxOffset && 
+                       cmp.compare(key, array[base + hint - offset]) < 0) {
                     
-                    lastOfs = ofs;
-                    ofs = (ofs << 1) + 1;
+                    lastOffset = offset;
+                    offset = (offset << 1) + 1;
                     
-                    if (ofs <= 0) {
-                        ofs = maxOfs;
+                    if (offset <= 0) {
+                        offset = maxOffset;
                     }
                 }
                 
-                if (ofs > maxOfs) {
-                    ofs = maxOfs;
+                if (offset > maxOffset) {
+                    offset = maxOffset;
                 }
                 
-                int tmp = lastOfs;
-                lastOfs = hint - ofs;
-                ofs = hint - tmp;
+                int tmp = lastOffset;
+                lastOffset = hint - offset;
+                offset = hint - tmp;
             } else {
-                final int maxOfs = length - hint;
+                final int maxOffset = length - hint;
                 
-                while (ofs < maxOfs && 
-                       cmp.compare(key, array[base + hint + ofs]) >= 0) {
+                while (offset < maxOffset && 
+                       cmp.compare(key, array[base + hint + offset]) >= 0) {
                     
-                    lastOfs = ofs;
-                    ofs = (ofs << 1) + 1;
+                    lastOffset = offset;
+                    offset = (offset << 1) + 1;
                     
-                    if (ofs <= 0) {
-                        ofs = maxOfs;
+                    if (offset <= 0) {
+                        offset = maxOffset;
                     }
                 }
                 
-                if (ofs > maxOfs) {
-                    ofs = maxOfs;
+                if (offset > maxOffset) {
+                    offset = maxOffset;
                 }
                 
-                lastOfs += hint;
-                ofs     += hint;
+                lastOffset += hint;
+                offset     += hint;
             }
             
-            ++lastOfs;
+            ++lastOffset;
             
-            while (lastOfs < ofs) {
-                final int m = lastOfs + ((ofs - lastOfs) >>> 1);
+            while (lastOffset < offset) {
+                final int m = lastOffset + ((offset - lastOffset) >>> 1);
                 
                 if (cmp.compare(key, array[base + m]) < 0) {
-                    ofs = m;
+                    offset = m;
                 } else {
-                    lastOfs = m + 1;
+                    lastOffset = m + 1;
                 }
             }
             
-            return ofs;
+            return offset;
         }
         
         private void merge(final T[] array,
@@ -955,7 +955,7 @@ public final class Arrays {
                                       0, 
                                       cmp);
             
-            base1 += k;
+            base1   += k;
             length1 -= k;
             
             if (length1 == 0) {
@@ -1141,26 +1141,27 @@ public final class Arrays {
             
             this.minimumGallop = minGallop < 1 ? 1 : minGallop;
             
-            if (length2 == 1) {
-                destination -= length1;
-                cursor1 -= length1;
-                
-                System.arraycopy(array,
-                                 cursor1 + 1, 
-                                 array, 
-                                 destination + 1, 
-                                 length1);
-                
-                array[destination] = buffer[cursor2];
-            } else if (length2 == 0) {
-                throw new IllegalArgumentException(
-                    "Comparison method violates its general contract!");
-            } else {
-                System.arraycopy(buffer,
-                                 0, 
-                                 array, 
-                                 destination - (length2 - 1),
-                                 length2);
+            switch (length2) {
+                case 1:
+                    destination -= length1;
+                    cursor1 -= length1;
+                    System.arraycopy(array,
+                            cursor1 + 1,
+                            array,
+                            destination + 1,
+                            length1);
+                    array[destination] = buffer[cursor2];
+                    break;
+                    
+                case 0:
+                    throw new IllegalArgumentException(
+                            "Comparison method violates its general contract!");
+                default:
+                    System.arraycopy(buffer,
+                            0,
+                            array,
+                            destination - (length2 - 1),
+                            length2);
             }
         }
         
@@ -1333,16 +1334,17 @@ public final class Arrays {
         }
     }
         
-    private static int nodePower(final int n, 
+    private static int nodePower(final int fromIndex,
+                                 final int rangeLength,
                                  final int b1,
-                                 final int e1,
                                  final int b2,
                                  final int e2) {
-        final long l2 = (long) b1 + b2;
-        final long r2 = (long) b2 + e2;
+        
+        final long l2 = (long) b1 + b2 - 2 * fromIndex;
+        final long r2 = (long) b2 + e2 - 2 * fromIndex;
 
-        final int a = (int) ((l2 << 30) / n);
-        final int b = (int) ((r2 << 30) / n);
+        final int a = (int) ((l2 << 30) / rangeLength);
+        final int b = (int) ((r2 << 30) / rangeLength);
 
         return Integer.numberOfLeadingZeros(a ^ b);
     }
