@@ -10,7 +10,7 @@ import java.util.Random;
 
 public final class ArraysBenchmark {
     
-    private static final int NUMBER_OF_ARRAYS = 15;
+    private static final int NUMBER_OF_ARRAYS = 10;
     
     public static void main(String[] args) {
         
@@ -45,8 +45,16 @@ public final class ArraysBenchmark {
         final List<Integer[]> dataD5 = copy(dataA5);
         final List<Integer[]> dataD6 = copy(dataA6);
         
+        final List<Integer[]> dataE1 = copy(dataA1);
+        final List<Integer[]> dataE2 = copy(dataA2);
+        final List<Integer[]> dataE3 = copy(dataA3);
+        final List<Integer[]> dataE4 = copy(dataA4);
+        final List<Integer[]> dataE5 = copy(dataA5);
+        final List<Integer[]> dataE6 = copy(dataA6);
+        
         System.out.println("Benchmark data prepared.");
         
+        // NaturalMergesort.sort runnables:
         final NaturalMergesortBenchmarkRunnable runnableA1 = 
           new NaturalMergesortBenchmarkRunnable(dataA1);
         
@@ -65,6 +73,7 @@ public final class ArraysBenchmark {
         final NaturalMergesortBenchmarkRunnable runnableA6 = 
           new NaturalMergesortBenchmarkRunnable(dataA6);
         
+        // NaturalMergesort.sort with presorting runnables:
         final NaturalMergesortV2BenchmarkRunnable runnableB1 = 
           new NaturalMergesortV2BenchmarkRunnable(dataB1);
         
@@ -83,6 +92,7 @@ public final class ArraysBenchmark {
         final NaturalMergesortV2BenchmarkRunnable runnableB6 = 
           new NaturalMergesortV2BenchmarkRunnable(dataB6);
         
+        // java.util.Arrays.sort runnaables:
         final ArraysSortBenchmarkRunnable runnableC1 = 
           new ArraysSortBenchmarkRunnable(dataC1);
         
@@ -101,6 +111,7 @@ public final class ArraysBenchmark {
         final ArraysSortBenchmarkRunnable runnableC6 = 
           new ArraysSortBenchmarkRunnable(dataC6);
         
+        // Powersort runnables.
         final PowersortBenchmarkRunnable runnableD1 = 
           new PowersortBenchmarkRunnable(dataD1);
         
@@ -119,13 +130,33 @@ public final class ArraysBenchmark {
         final PowersortBenchmarkRunnable runnableD6 = 
           new PowersortBenchmarkRunnable(dataD6);
         
+        // Peeksort runnables:
+        final PeeksortBenchmarkRunnable runnableE1 = 
+          new PeeksortBenchmarkRunnable(dataE1);
+        
+        final PeeksortBenchmarkRunnable runnableE2 = 
+          new PeeksortBenchmarkRunnable(dataE2);
+        
+        final PeeksortBenchmarkRunnable runnableE3 = 
+          new PeeksortBenchmarkRunnable(dataE3);
+        
+        final PeeksortBenchmarkRunnable runnableE4 = 
+          new PeeksortBenchmarkRunnable(dataE4);
+        
+        final PeeksortBenchmarkRunnable runnableE5 = 
+          new PeeksortBenchmarkRunnable(dataE5);
+        
+        final PeeksortBenchmarkRunnable runnableE6 = 
+          new PeeksortBenchmarkRunnable(dataE6);
+        
         System.out.println(
         """
         *********************************************************************
         * After each title --- Title ---, the first row is for the          *
         * NaturalMergesort.sort, the second row is for the                  *
         * NaturalMergesort.sort with presorting, the third row is for the   *
-        * Arrays.sort, and the fourth row is for the Powersort.sort.        *
+        * Arrays.sort, the fourth row is for the Powersort.sort, and the    *
+        * fifth row is for Peeksort.sort.                                   *
         *********************************************************************
         """
         );
@@ -135,6 +166,7 @@ public final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableB1, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC1, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableD1, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableE1, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.out.println("--- Random data ---");
@@ -142,6 +174,7 @@ public final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableB2, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC2, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableD2, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableE2, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.gc();
@@ -151,6 +184,7 @@ public final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableB3, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC3, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableD3, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableE3, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.gc();
@@ -160,6 +194,7 @@ public final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableB4, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC4, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableD4, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableE4, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.gc();
@@ -169,6 +204,7 @@ public final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableB5, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC5, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableD5, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableE5, NUMBER_OF_ARRAYS));
         System.out.println();
         
         System.gc();
@@ -178,6 +214,7 @@ public final class ArraysBenchmark {
         System.out.println(Runner.measure(runnableB6, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableC6, NUMBER_OF_ARRAYS));
         System.out.println(Runner.measure(runnableD6, NUMBER_OF_ARRAYS));
+        System.out.println(Runner.measure(runnableE6, NUMBER_OF_ARRAYS));
         System.out.println();
         
         final boolean equal1  = arrayListsEqual(dataA1, dataB1);
@@ -198,6 +235,12 @@ public final class ArraysBenchmark {
         final boolean equal16 = arrayListsEqual(dataA4, dataD4);
         final boolean equal17 = arrayListsEqual(dataA5, dataD5);
         final boolean equal18 = arrayListsEqual(dataA6, dataD6);
+        final boolean equal19 = arrayListsEqual(dataA1, dataE1);
+        final boolean equal20 = arrayListsEqual(dataA2, dataE2);
+        final boolean equal21 = arrayListsEqual(dataA3, dataE3);
+        final boolean equal22 = arrayListsEqual(dataA4, dataE4);
+        final boolean equal23 = arrayListsEqual(dataA5, dataE5);
+        final boolean equal24 = arrayListsEqual(dataA6, dataE6);
         
         System.out.printf("Algorithms agree: %b.\n", equal1 &&
                                                      equal2 &&
@@ -216,7 +259,13 @@ public final class ArraysBenchmark {
                                                      equal15 &&
                                                      equal16 &&
                                                      equal17 &&
-                                                     equal18);
+                                                     equal18 &&
+                                                     equal19 &&
+                                                     equal20 &&
+                                                     equal21 &&
+                                                     equal22 &&
+                                                     equal23 &&
+                                                     equal24);
         
         System.out.printf("All arrays are sorted: %b.\n",
                           allSorted(dataA1) &&
@@ -242,7 +291,13 @@ public final class ArraysBenchmark {
                           allSorted(dataD3) &&
                           allSorted(dataD4) &&
                           allSorted(dataD5) &&
-                          allSorted(dataD6));
+                          allSorted(dataD6) &&
+                          allSorted(dataE1) &&
+                          allSorted(dataE2) &&
+                          allSorted(dataE3) &&
+                          allSorted(dataE4) &&
+                          allSorted(dataE5) &&
+                          allSorted(dataE6));
     }
     
     private static List<Integer[]> createSortedArrays() {
@@ -316,9 +371,9 @@ public final class ArraysBenchmark {
     }
     
     private static Integer[] createSortedArray() {
-        final Integer[] array = new Integer[1_000_000];
+        final Integer[] array = new Integer[500_000];
         
-        for (int i = 0; i < 1_000_000; ++i) {
+        for (int i = 0; i < 500_000; ++i) {
             array[i] = i;
         }
         
@@ -326,9 +381,9 @@ public final class ArraysBenchmark {
     }
     
     private static Integer[] createRandomArray(final Random random) {
-        final Integer[] array = new Integer[1_000_000];
+        final Integer[] array = new Integer[500_000];
         
-        for (int i = 0; i < 1_000_000; ++i) {
+        for (int i = 0; i < 500_000; ++i) {
             array[i] = random.nextInt();
         }
         
@@ -341,8 +396,8 @@ public final class ArraysBenchmark {
         for (int i = 0; i < 1_000; ++i) {
             java.util.Arrays.sort(
                     array, 
-                    1_000 * i, 
-                    1_000 * (i + 1), 
+                    500 * i, 
+                    500 * (i + 1), 
                     Integer::compare);
         }
         
@@ -350,18 +405,18 @@ public final class ArraysBenchmark {
     }
     
     private static Integer[] createBadTailArray() {
-        final Integer[] array = new Integer[1024 * 1024 + 1000];
+        final Integer[] array = new Integer[512 * 1024 + 1000];
         
         int index = 0;
         
         for (int runIndex = 0; runIndex < 1024; ++runIndex) {
-            for (int i = 0; i < 1024; ++i) {
+            for (int i = 0; i < 512; ++i) {
                 array[index++] = i;
             }
         }
         
-        for (int i = 1024 * 1024; i < array.length; ++i) {
-            array[index++] = i - 2_000_000;
+        for (int i = 512 * 1024; i < array.length; ++i) {
+            array[index++] = i - 1_000_000;
         }
         
         return array;
@@ -369,7 +424,7 @@ public final class ArraysBenchmark {
     }
     
     private static Integer[] createZigZagArray() {
-        final Integer[] array = new Integer[1_000_000];
+        final Integer[] array = new Integer[500_000];
         
         for (int i = 0; i < array.length; ++i) {
             array[i] = i;
@@ -386,7 +441,7 @@ public final class ArraysBenchmark {
     }
     
     private static Integer[] createSkewedArray(final Random random) {
-        final Integer[] array = new Integer[1_000_000];
+        final Integer[] array = new Integer[500_000];
         
         int index = 0;
         
@@ -474,6 +529,26 @@ public final class ArraysBenchmark {
             }
             
             Arrays.Powersort.sort(data.get(runned++), Integer::compare);
+        }
+    }
+    
+    private static final class PeeksortBenchmarkRunnable 
+            implements Runnable {
+
+        private final List<Integer[]> data = new ArrayList<>();
+        private int runned = 0;
+        
+        PeeksortBenchmarkRunnable(final List<Integer[]> data) {
+            this.data.addAll(data);
+        }
+        
+        @Override
+        public void run() {
+            if (runned == data.size()) {
+                throw new IllegalStateException("Should not get here.");
+            }
+            
+            Arrays.Peeksort.sort(data.get(runned++), Integer::compare);
         }
     }
     
