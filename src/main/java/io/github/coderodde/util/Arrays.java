@@ -444,40 +444,6 @@ public final class Arrays {
         }
 
         /**
-         * Sorts the range {@code array[fromIndex ... toIndex - 1]} via insertion
-         * sort.
-         * 
-         * @param <T>       the type of the array component.
-         * @param array     the target array.
-         * @param fromIndex the starting, inclusive index.
-         * @param toIndex   the ending, exclusive index.
-         * @param cmp       the comparator.
-         */
-        private static <T> void insertionSort(final T[] array,
-                                              final int fromIndex,
-                                              final int toIndex,
-                                              final Comparator<? super T> cmp) {
-            for (int i = fromIndex + 1; i < toIndex; ++i) {
-                final T key = array[i];
-                int j = i - 1;
-
-                if (cmp.compare(array[fromIndex], key) < 0) {
-                    while (cmp.compare(array[j], key) > 0) {
-                        array[j + 1] = array[j];
-                        --j;
-                    }
-                } else {
-                    while (j >= fromIndex) {
-                        array[j + 1] = array[j];
-                        --j;
-                    }
-                }
-
-                array[j + 1] = key;
-            }
-        }
-
-        /**
          * Merges two consecutive runs into one run.
          * 
          * @param <T>            the type of the array components.
@@ -798,6 +764,355 @@ public final class Arrays {
             ++stackSize;
         }
     }
+        
+    public static final class Peeksort<T> {
+        
+        private static final int INSERTION_SORT_THRESHOLD = 24;
+        
+        public static <T> void sort(final T[] array,
+                                    final Comparator<? super T> cmp) {
+            Objects.requireNonNull(array, "The input array is null.");
+            sort(array,
+                 0,
+                 array.length,
+                 cmp);
+        }
+        
+        public static <T> void sort(final T[] array,
+                                    final int fromIndex,
+                                    final int toIndex,
+                                    final Comparator<? super T> cmp) {
+            Objects.requireNonNull(array, "The input array is null.");
+            checkIndices(fromIndex, toIndex, array.length);
+            Objects.requireNonNull(cmp, "The comparator object is null.");
+            
+            final int rangeLength = toIndex - fromIndex;
+            
+            if (rangeLength < 2) {
+                return;
+            }
+            
+            final T[] buffer = (T[]) new Object[rangeLength];
+            final int m = fromIndex + (rangeLength >>> 1);
+            
+            
+            
+//            sort(array,
+//                 buffer,
+//                 fromIndex,
+//                 toIndex,
+//                 fromIndex,
+//                 toIndex,
+//                 cmp);
+        }
+        
+        private static <T> void peeksort(final T[] array,
+                                         final T[] buffer,
+                                         final int begin,
+                                         final int end,
+                                         final int leftRunEnd,
+                                         final int rightRunBegin,
+                                         final Comparator<? super T> cmp) {
+            if (leftRunEnd == end || rightRunBegin == begin) {
+                return;
+            }
+            
+            final int n = end - begin;
+            
+            if (n <= INSERTION_SORT_THRESHOLD) {
+                insertionSort(array,
+                              begin,
+                              end,
+                              cmp);
+                return;
+            }
+            
+            final int m = begin + (n >>> 1);
+            
+            if (m <= leftRunEnd) {
+                peeksort(array,
+                         buffer,
+                         leftRunEnd,
+                         end,
+                         leftRunEnd + 1, 
+                         rightRunBegin,
+                         cmp);
+                
+                peeksortMerge(array, 
+                              buffer,
+                              begin,
+                              leftRunEnd, 
+                              end,
+                              cmp);
+            } else if (m >= rightRunBegin) {
+                peeksort(array,
+                         buffer,
+                         begin,
+                         rightRunBegin,
+                         leftRunEnd,
+                         rightRunBegin - 1,
+                         cmp);
+                
+                peeksortMerge(array,
+                              buffer,
+                              begin,
+                              rightRunBegin,
+                              end,
+                              cmp);
+            } else {
+                final int i;
+                final int j;
+                
+                if (cmp.compare(array[m - 1], array[m]) <= 0) {
+                    i = weaklyIncreasingSuffix(array, 
+                                               leftRunEnd,
+                                               m, 
+                                               cmp);
+                    
+                    j = weaklyIncreasingPrefix(array, 
+                                               m - 1, 
+                                               rightRunBegin, 
+                                               cmp);
+                } else {
+                    i = strictlyDecreasingSuffix(array, 
+                                                 leftRunEnd, 
+                                                 m,
+                                                 cmp);
+                    
+                    j = strictlyDecreasingPrefix(array,
+                                                 m - 1, 
+                                                 rightRunBegin,
+                                                 cmp);
+                    reverseRun(array, i, j);
+                }
+                
+                if (i == begin && j == end) {
+                    return;
+                }
+                
+                if (m - i < j - m) {
+                    peeksort(array, buffer, begin, i, leftRunEnd, i - 1, cmp);
+                    peeksort(array, buffer, i, end, j, rightRunBegin, cmp);
+                    peeksortMerge(array, buffer, begin, i, end, cmp);
+                } else {
+                    peeksort(array, buffer, begin, j, leftRunEnd, i, cmp);
+                    peeksort(array, buffer, j, end, j + 1, rightRunBegin, cmp);
+                    peeksortMerge(array, buffer, begin, j, end, cmp);
+                }
+            }
+        }
+    }
+    
+    private static <T> int weaklyIncreasingPrefix(
+        final T[] array,
+        int begin,
+        final int end,
+        final Comparator<? super T> cmp) {
+            
+        while (begin + 1 < end) {
+            if (cmp.compare(array[begin], array[begin + 1]) <= 0) {
+                ++begin;
+            } else {
+                break;
+            }
+        }
+        
+        return begin + 1;
+    }
+    
+    private static <T> int weaklyIncreasingSuffix(
+        final T[] array,
+        final int begin,
+        int end,
+        final Comparator<? super T> cmp) {
+            
+        while (end - 1 > begin) {
+            if (cmp.compare(array[end - 2], array[end - 1]) <= 0) {
+                --end;
+            } else {
+                break;
+            }
+        }
+        
+        return end - 1;
+    }
+    
+    private static <T> int strictlyDecreasingPrefix(
+        final T[] array,
+        int begin,
+        final int end,
+        final Comparator<? super T> cmp) {
+        
+        while (begin + 1 < end) {
+            if (cmp.compare(array[begin], array[begin + 1]) > 0) {
+                ++begin;
+            } else {
+                break;
+            }
+        }
+        
+        return begin + 1;
+    }
+    
+    private static <T> int strictlyDecreasingSuffix(
+        final T[] array,
+        final int begin,
+        int end,
+        final Comparator<? super T> cmp) {
+        
+        while (end - 1 > begin) {
+            if (cmp.compare(array[end - 2], array[end - 1]) > 0) {
+                --end;
+            } else {
+                break;
+            }
+        }
+        
+        return end - 1;
+    }
+    
+    private static <T> void peeksortMerge(final T[] array,
+                                          final T[] buffer,
+                                          final int l,
+                                          final int m,
+                                          final int r,
+                                          final Comparator<? super T> cmp) {
+        final int n1 = m - l;
+        final int n2 = r - m;
+        
+        if (n1 <= n2) {
+            System.arraycopy(array, l, buffer, 0, n1);
+            
+            int c1 = 0;
+            int e1 = n1;
+            int c2 = m;
+            int e2 = r;
+            int o  = l;
+            
+            while (c1 < e1 && c2 < e2) {
+                array[o++] = cmp.compare(buffer[c1], array[c2]) <= 0 ?
+                             buffer[c1++] :
+                             array[c2++];
+            }
+            
+            System.arraycopy(buffer, c1, array, c2, e1 - c1);
+        } else {
+            System.arraycopy(array, m, buffer, 0, n2);
+            
+            int c1 = m - 1;
+            int s1 = l;
+            int o = r - 1;
+            int c2 = n2 - 1;
+            int s2 = 0;
+            
+            while (c1 >= s1 && c2 >= s2) {
+                array[o--] = cmp.compare(array[c1], buffer[c2]) <= 0 ?
+                             buffer[c2--] :
+                             array[c1--];
+            }
+            
+            while (c2 >= s2) {
+                array[o--] = buffer[c2--];
+            }
+        }
+    }
+    
+    private static int nodePower(final int rangeLength,
+                                 final int b1,
+                                 final int b2,
+                                 final int e2) {
+        
+        final long l2 = (long) b1 + b2;
+        final long r2 = (long) b2 + e2;
+
+        final int a = (int) ((l2 << 30) / rangeLength);
+        final int b = (int) ((r2 << 30) / rangeLength);
+
+        return Integer.numberOfLeadingZeros(a ^ b);
+    }
+
+    private static <T> int firstRunOf(final T[] array,
+                                      final int fromIndex,
+                                      final int toIndex,
+                                      final Comparator<? super T> cmp) {
+        int indexLeft = fromIndex;
+
+        while (indexLeft + 1 < toIndex) {
+            final int indexHead = indexLeft;
+            int indexRight = indexLeft + 1;
+
+            if (cmp.compare(array[indexLeft], array[indexRight]) <= 0) {
+                do {
+                    ++indexLeft;
+                    ++indexRight;
+                } while (indexRight < toIndex &&
+                         cmp.compare(array[indexLeft], 
+                                     array[indexRight]) <= 0);
+            } else {
+                do {
+                    ++indexLeft;
+                    ++indexRight;
+                } while (indexRight < toIndex &&
+                         cmp.compare(array[indexLeft], 
+                                     array[indexRight]) > 0);
+
+                reverseRun(array,
+                           indexHead,
+                           indexRight);
+            }
+
+            if (indexHead != fromIndex &&
+                cmp.compare(array[indexHead - 1], array[indexHead]) > 0) {
+                return indexHead;
+            }
+
+            indexLeft = indexRight;
+        }
+
+        if (indexLeft < toIndex && 
+            indexLeft != fromIndex &&
+            cmp.compare(array[indexLeft - 1],
+                        array[indexLeft]) > 0) {
+
+            return indexLeft;
+        }
+
+        return toIndex;
+    }
+    
+    /**
+     * Sorts the range {@code array[fromIndex ... toIndex - 1]} via insertion
+     * sort.
+     * 
+     * @param <T>       the type of the array component.
+     * @param array     the target array.
+     * @param fromIndex the starting, inclusive index.
+     * @param toIndex   the ending, exclusive index.
+     * @param cmp       the comparator.
+     */
+    private static <T> void insertionSort(final T[] array,
+                                          final int fromIndex,
+                                          final int toIndex,
+                                          final Comparator<? super T> cmp) {
+        for (int i = fromIndex + 1; i < toIndex; ++i) {
+            final T key = array[i];
+            int j = i - 1;
+
+            if (cmp.compare(array[fromIndex], key) < 0) {
+                while (cmp.compare(array[j], key) > 0) {
+                    array[j + 1] = array[j];
+                    --j;
+                }
+            } else {
+                while (j >= fromIndex) {
+                    array[j + 1] = array[j];
+                    --j;
+                }
+            }
+
+            array[j + 1] = key;
+        }
+    }
     
     private static <T> void merge(final T[] array,
                                   final T[] buffer,
@@ -867,69 +1182,6 @@ public final class Arrays {
                              offset, 
                              indexRight + 1);
         }
-    }
-        
-    private static int nodePower(final int rangeLength,
-                                 final int b1,
-                                 final int b2,
-                                 final int e2) {
-        
-        final long l2 = (long) b1 + b2;
-        final long r2 = (long) b2 + e2;
-
-        final int a = (int) ((l2 << 30) / rangeLength);
-        final int b = (int) ((r2 << 30) / rangeLength);
-
-        return Integer.numberOfLeadingZeros(a ^ b);
-    }
-
-    private static <T> int firstRunOf(final T[] array,
-                                      final int fromIndex,
-                                      final int toIndex,
-                                      final Comparator<? super T> cmp) {
-        int indexLeft = fromIndex;
-
-        while (indexLeft + 1 < toIndex) {
-            final int indexHead = indexLeft;
-            int indexRight = indexLeft + 1;
-
-            if (cmp.compare(array[indexLeft], array[indexRight]) <= 0) {
-                do {
-                    ++indexLeft;
-                    ++indexRight;
-                } while (indexRight < toIndex &&
-                         cmp.compare(array[indexLeft], 
-                                     array[indexRight]) <= 0);
-            } else {
-                do {
-                    ++indexLeft;
-                    ++indexRight;
-                } while (indexRight < toIndex &&
-                         cmp.compare(array[indexLeft], 
-                                     array[indexRight]) > 0);
-
-                reverseRun(array,
-                           indexHead,
-                           indexRight);
-            }
-
-            if (indexHead != fromIndex &&
-                cmp.compare(array[indexHead - 1], array[indexHead]) > 0) {
-                return indexHead;
-            }
-
-            indexLeft = indexRight;
-        }
-
-        if (indexLeft < toIndex && 
-            indexLeft != fromIndex &&
-            cmp.compare(array[indexLeft - 1],
-                        array[indexLeft]) > 0) {
-
-            return indexLeft;
-        }
-
-        return toIndex;
     }
     
     /**
