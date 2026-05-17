@@ -324,6 +324,97 @@ public class ArraysTest {
         }
     }
     
+    @Test
+    public void peekSortSortsZeroElements() {
+        Integer[] arr = {};
+        Arrays.Peeksort.sort(arr, Integer::compare);
+        assertTrue(Utils.isSorted(arr, Integer::compare));
+    }
+    
+    @Test
+    public void peekSortSortsOneElements() {
+        Integer[] arr = { -1 };
+        Arrays.Peeksort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ -1 }));
+    }
+    
+    @Test
+    public void peekSortSortsTwoElementsAlreadySorted() {
+        Integer[] arr = { -1, 1 };
+        Arrays.Peeksort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ -1, 1 }));
+    }
+    
+    @Test
+    public void peekSortSortsTwoElementsDescending() {
+        Integer[] arr = { 1, -1 };
+        Arrays.Peeksort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ -1, 1 }));
+    }
+    
+    @Test
+    public void peekSortSortsTwoElementsOnDescendingSubrange() {
+        Integer[] arr = { 5, 1, -1, 6 };
+        Arrays.Peeksort.sort(arr, 1, 3, Integer::compare);
+        assertTrue(isSorted(arr, 1, 3, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ 5, -1, 1, 6 }));
+    }
+    
+    @Test
+    public void peekSortSortsTwoElementsOnAscendingSubrange() {
+        Integer[] arr = { 5, -1, 1, 6 };
+        Arrays.Peeksort.sort(arr, 1, 3, Integer::compare);
+        assertTrue(isSorted(arr, 1, 3, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ 5, -1, 1, 6 }));
+    }
+    
+    @Test
+    public void peekSortSortOnTwoRuns() {
+        Integer[] arr = { 6, 5, 1, 4, 3, 2 };
+        Arrays.Peeksort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ 1, 2, 3, 4, 5, 6 }));
+    }
+    
+    @Test
+    public void peekSortSortOnThreeRuns() {
+        Integer[] arr = { 7, 5, 8, 4, 2, 6, 3, 1 };
+        Arrays.Peeksort.sort(arr, Integer::compare);
+        assertTrue(isSorted(arr, Integer::compare));
+        assertTrue(arraysEqual(arr, new Integer[]{ 1, 2, 3, 4, 5, 6, 7, 8 }));
+    }
+    
+    @Test
+    public void peekSortDebug1() {
+        final Random random = new Random(666L);
+        Integer[] arr = createRandomArray(random, 40);
+        Arrays.Peeksort.sort(arr, 1, arr.length - 1, Integer::compare);
+        assertTrue(isSorted(arr, 1, arr.length - 1, Integer::compare));
+    }
+    
+    @Test
+    public void peekSortStressTest() {
+        final Random random = new Random(13L);
+        
+        for (int i = 0; i < 10; ++i) {
+            final Integer[] array1 = createRandomArray(random);
+            final Integer[] array2 = array1.clone();
+            final int rndInt1 = random.nextInt(array1.length);
+            final int rndInt2 = random.nextInt(array1.length);
+            final int fromIndex = Math.min(rndInt1, rndInt2);
+            final int toIndex   = Math.max(rndInt1, rndInt2);
+            
+            Arrays.Peeksort.sort(array1, fromIndex, toIndex, Integer::compare);
+            java.util.Arrays.sort(array2, fromIndex, toIndex, Integer::compare);
+            assertTrue(isSorted(array1, fromIndex, toIndex, Integer::compare));
+            assertTrue(isSorted(array2, fromIndex, toIndex, Integer::compare));
+            assertTrue(arraysEqual(array1, array2));
+        }
+    }
+    
     private static Integer[] createRandomArray(final Random random) {
         final int arrayLength = getRandom(1, 1000, random);
         final Integer[] array = new Integer[arrayLength];

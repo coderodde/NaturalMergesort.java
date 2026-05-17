@@ -792,18 +792,16 @@ public final class Arrays {
                 return;
             }
             
-            final T[] buffer = (T[]) new Object[rangeLength];
+            final T[] buffer = (T[]) new Object[rangeLength / 2];
             final int m = fromIndex + (rangeLength >>> 1);
             
-            
-            
-//            sort(array,
-//                 buffer,
-//                 fromIndex,
-//                 toIndex,
-//                 fromIndex,
-//                 toIndex,
-//                 cmp);
+            peeksort(array,
+                     buffer,
+                     fromIndex,
+                     toIndex,
+                     fromIndex + 1,
+                     toIndex - 1,
+                     cmp);
         }
         
         private static <T> void peeksort(final T[] array,
