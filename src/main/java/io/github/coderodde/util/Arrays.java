@@ -793,7 +793,6 @@ public final class Arrays {
             }
             
             final T[] buffer = (T[]) new Object[rangeLength / 2];
-            final int m = fromIndex + (rangeLength >>> 1);
             
             peeksort(array,
                      buffer,
@@ -993,7 +992,7 @@ public final class Arrays {
                              array[c2++];
             }
             
-            System.arraycopy(buffer, c1, array, c2, e1 - c1);
+            System.arraycopy(buffer, c1, array, o, e1 - c1);
         } else {
             System.arraycopy(array, m, buffer, 0, n2);
             
@@ -1096,7 +1095,7 @@ public final class Arrays {
             final T key = array[i];
             int j = i - 1;
 
-            if (cmp.compare(array[fromIndex], key) < 0) {
+            if (cmp.compare(array[fromIndex], key) <= 0) {
                 while (cmp.compare(array[j], key) > 0) {
                     array[j + 1] = array[j];
                     --j;
